@@ -1,12 +1,17 @@
 import asyncio
 from indy import crypto, did, wallet
 
-from receiver.aiohttp_receiver import AioHttpReceiver
+from receiver.aiohttp_receiver import AioHttpReceiver as Receiver
+from router.simple_router import SimpleRouter as Router
+import modules.connection as connection
+from serializer.message import Message
+import serializer.json_serializer as Serializer
 
 q = asyncio.Queue()
 loop = asyncio.get_event_loop()
 
-receiver = AioHttpReceiver(q, 8080)
+receiver = Receiver(q, 8080)
+router = Router()
 
 async def init():
     me = input('Who are you? ').strip()
@@ -28,9 +33,14 @@ async def init():
 
 async def main():
     wallet_handle, my_did, my_vk = await init()
+    await router.register("CONN_REQ", connection.handle_request)
     while True:
-        msg = await receiver.recv()
-        print(msg)
+        msg_bytes = await receiver.recv()
+        print("Message received:\n\tbytes: {}".format(msg_bytes))
+        msg = Serializer.unpack(msg_bytes)
+        print("\tType: {}, Data: {}".format(msg.type, msg.data))
+        print("Testing going back to JSON from message:\n\t{}".format(Serializer.pack(msg)))
+        await router.route(msg, wallet_handle)
 
 try:
     loop.create_task(receiver.start(loop))

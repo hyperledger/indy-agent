@@ -15,7 +15,9 @@ class Message(object):
         return Message(type, data)
 
     def to_json(self):
-        return MessageSerializer(self).data
+        msg_dict = {"type": self.type, "data": self.data}
+        return json.dumps(msg_dict)
+        #return MessageSerializer(self).data
 
 class MessageSerializer(serpy.Serializer):
     type = serpy.StrField()

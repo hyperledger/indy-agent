@@ -2,7 +2,7 @@
 
 import asyncio
 from aiohttp import web
-from base_receiver import BaseReceiver
+from .base_receiver import BaseReceiver
 
 class AioHttpReceiver(BaseReceiver):
     def __init__(self, queue, port: int):
@@ -10,6 +10,8 @@ class AioHttpReceiver(BaseReceiver):
         self.msg_queue = queue
 
     async def default_handler(self, request):
+        if request.method != "POST":
+            raise web.HTTPMethodNotAllowed("GET", "POST")
         msg = await request.read()
         await self.msg_queue.put(msg)
         print("Adding to queue")
