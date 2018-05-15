@@ -9,20 +9,33 @@ class AioHttpReceiver(BaseReceiver):
         self.port = port
         self.msg_queue = queue
 
-    async def default_handler(request):
+    async def default_handler(self, request):
         msg = await request.read()
-        self.msg_queue.put(msg)
+        await self.msg_queue.put(msg)
         print("Adding to queue")
         raise web.HTTPAccepted()
 
-    async def start(self, event_loop, handler=default_handler):
-        server = web.Server(handler)
-        await loop.create_server(server, "127.0.0.1", 8080)
+    def start(self, event_loop):
+        server = web.Server(self.default_handler)
         print("======= Serving on http://127.0.0.1:8080/ ======")
-        await asyncio.sleep(100*3600)
+        return event_loop.create_server(server, "127.0.0.1", self.port)
+
+    async def recv(self):
+        return await self.msg_queue.get()
 
 if __name__ == "__main__":
     q = asyncio.Queue()
     loop = asyncio.get_event_loop()
     receiver = AioHttpReceiver(q, 8080)
-    loop.run_until_complete(receiver.start(loop))
+
+    async def consume():
+        while True:
+            msg = await receiver.recv()
+            print(msg)
+
+    try:
+        producer_task = loop.create_task(receiver.start(loop))
+        consumer_task = loop.create_task(consume())
+        loop.run_forever()
+    except KeyboardInterrupt:
+        print("exiting")
