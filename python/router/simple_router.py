@@ -1,6 +1,6 @@
 from typing import Callable
 from .base_router import BaseRouter
-from packager.message import Message
+from serializer.message import Message
 
 class SimpleRouter(BaseRouter):
     def __init__(self):
