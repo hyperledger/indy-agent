@@ -1,12 +1,12 @@
 from typing import Callable
 from .base_router import BaseRouter
-from packager import Message
+from packager.message import Message
 
 class SimpleRouter(BaseRouter):
     def __init__(self):
         self.routes = {}
 
-    async def register(msg_type: str, handler: Callable[[bytes], None]):
+    async def register(self, msg_type: str, handler: Callable[[bytes], None]):
         """ Register a callback for messages with a given type.
         """
         if msg_type in self.routes.keys():
@@ -14,7 +14,7 @@ class SimpleRouter(BaseRouter):
 
         self.routes[msg_type] = handler
 
-    async def route(msg, wallet_handle):
+    async def route(self, msg, wallet_handle):
         """ Route a message to it's registered callback
         """
         if msg.type in self.routes.keys():

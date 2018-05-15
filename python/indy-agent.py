@@ -1,12 +1,16 @@
 import asyncio
 from indy import crypto, did, wallet
 
-from receiver.aiohttp_receiver import AioHttpReceiver
+from receiver.aiohttp_receiver import AioHttpReceiver as Receiver
+from router.simple_router import SimpleRouter as Router
+import modules.connection as connection
+from packager.message import Message
 
 q = asyncio.Queue()
 loop = asyncio.get_event_loop()
 
-receiver = AioHttpReceiver(q, 8080)
+receiver = Receiver(q, 8080)
+router = Router()
 
 async def init():
     me = input('Who are you? ').strip()
@@ -28,9 +32,13 @@ async def init():
 
 async def main():
     wallet_handle, my_did, my_vk = await init()
+    await router.register("CONN_REQ", connection.handle_request)
     while True:
-        msg = await receiver.recv()
+        msg_bytes = await receiver.recv()
+        print(msg_bytes)
+        msg = Message.from_json(msg_bytes)
         print(msg)
+        await router.route(msg, wallet_handle)
 
 try:
     loop.create_task(receiver.start(loop))
