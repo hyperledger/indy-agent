@@ -7,5 +7,5 @@ setup(
     url='https://github.com/hyperledger/indy-agent',
     license='MIT/Apache-2.0',
     description='Reference Agent for the Indy-SDK',
-    install_requires=['python3-indy', 'aiohttp']
+    install_requires=['python3-indy', 'aiohttp', 'serpy']
 )

@@ -60,5 +60,5 @@ if __name__ == '__main__':
         loop.run_until_complete(demo())
         time.sleep(1)  # waiting for libindy thread complete
     except KeyboardInterrupt:
-        print('')
+        print('goodbye')
 

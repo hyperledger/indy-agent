@@ -2,7 +2,7 @@
 
 import asyncio
 from aiohttp import web
-from .base_receiver import BaseReceiver
+from base_receiver import BaseReceiver
 
 class AioHttpReceiver(BaseReceiver):
     def __init__(self, queue, port: int):
@@ -38,4 +38,4 @@ if __name__ == "__main__":
         consumer_task = loop.create_task(consume())
         loop.run_forever()
     except KeyboardInterrupt:
-        print("exiting")
+        print("\nexiting")
