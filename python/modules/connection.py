@@ -30,7 +30,7 @@ class Connection:
         
         - user DID, and verkey
         
-    '''git 
+    '''
     def send_response(self, data, wallet_handle):
 
         pass
