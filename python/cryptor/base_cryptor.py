@@ -13,9 +13,9 @@ class BaseCryptor(object):
 
     def auth_decrypt(self, msg: bytes, recipient_vk: str):
         """ Decrypt message for receiver with verifiable sender
-            
+
             :param msg - encrypted bytes
-            : return 
+            :return decrypted bytes
         """
         raise NotImplementedError("auth_decrypt not implemented for BaseCryptor!")
 
@@ -30,8 +30,8 @@ class BaseCryptor(object):
 
     def anon_decrypt(self, msg: bytes, recipient_vk: str):
         """ Decrypt message for receiver with verifiable sender
-            
+
             :param msg - encrypted bytes
-            : return 
+            :return decrypted bytes
         """
         raise NotImplementedError("auth_decrypt not implemented for BaseCryptor!")

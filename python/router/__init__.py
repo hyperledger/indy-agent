@@ -1,0 +1,2 @@
+class RouteAlreadyRegisteredException(Exception):
+    pass
