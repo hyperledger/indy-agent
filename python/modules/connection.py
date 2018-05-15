@@ -3,14 +3,14 @@ class Connection:
     '''
         Handles connection requests from other peers.
     '''
-    def handle_request(self, data):
+    def handle_request(self, data, wallet_handle):
 
         pass
 
     '''
         decrypts anoncrypted connection response 
     '''
-    def handle_response(self, data):
+    def handle_response(self, data, wallet_handle):
 
         pass
 
@@ -19,7 +19,7 @@ class Connection:
         
         a connection response contains the user's did, verkey, endpoint, and endpoint of person wanting to connect.
     '''
-    def send_request(self, data):
+    def send_request(self, data, wallet_handle):
 
         pass
 
@@ -30,7 +30,7 @@ class Connection:
         
         - user DID, and verkey
         
-    '''
-    def send_response(self, data):
+    '''git 
+    def send_response(self, data, wallet_handle):
 
         pass
