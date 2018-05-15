@@ -18,4 +18,4 @@ class SimpleRouter(BaseRouter):
         """ Route a message to it's registered callback
         """
         if msg.type in self.routes.keys():
-            self.routes[msg.type](msg.data, wallet_handle)
+            await self.routes[msg.type](msg.data, wallet_handle)

@@ -1,6 +1,7 @@
 import asyncio
 import time
 import re
+import json
 from indy import crypto, did, wallet
 
 '''
@@ -13,14 +14,19 @@ def handle_request(data, wallet_handle):
 '''
     decrypts anoncrypted connection response 
 '''
-def handle_response(self, data, wallet_handle):
-
+async def handle_response(self, data, wallet_handle):
     decrypted = await crypto.auth_decrypt(wallet_handle, my_vk, data)
     msg = decrypted.__getitem__(1).decode()
     print(msg)
-    print("Connection request received")
-    print(data)
-    print(wallet_handle)
+
+'''
+    Handles connection requests from other peers.
+'''
+async def handle_request(data, wallet_handle):
+    ident_json = json.dumps({"did": data['did']})
+    print(ident_json)
+    await did.store_their_did(wallet_handle, ident_json)
+    print("did and verkey stored")
 
 '''
     decrypts anoncrypted connection response

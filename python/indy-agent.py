@@ -39,7 +39,6 @@ async def main():
         print("Message received:\n\tbytes: {}".format(msg_bytes))
         msg = Serializer.unpack(msg_bytes)
         print("\tType: {}, Data: {}".format(msg.type, msg.data))
-        print("Testing going back to JSON from message:\n\t{}".format(Serializer.pack(msg)))
         await router.route(msg, wallet_handle)
 
 try:
