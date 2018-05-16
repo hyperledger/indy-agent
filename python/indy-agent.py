@@ -1,4 +1,5 @@
 import asyncio
+import os
 from indy import did, wallet, pool
 
 from receiver.aiohttp_receiver import AioHttpReceiver as Receiver
@@ -9,7 +10,11 @@ import serializer.json_serializer as Serializer
 q = asyncio.Queue()
 loop = asyncio.get_event_loop()
 
-receiver = Receiver(q, 61495)
+port = os.environ('INDY_AGENT_PORT')
+if not port:
+    port = 8080
+
+receiver = Receiver(q, port)
 router = Router()
 
 async def init():
