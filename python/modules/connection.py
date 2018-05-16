@@ -62,7 +62,7 @@ async def handle_request(msg, wallet_handle):
 '''
 async def handle_response(msg, wallet_handle):
     their_did = msg.did
-    my_did = await pairwise.get_pairwise(wallet_handle, their_did)
+    my_did = json.loads(await pairwise.get_pairwise(wallet_handle, their_did))['my_did']
     my_vk = await did.key_for_local_did(wallet_handle, my_did)
 
     decrypted_data = await crypto.anon_decrypt(my_vk, msg.data)
@@ -80,18 +80,32 @@ async def handle_response(msg, wallet_handle):
        - URL of agent
        - Public verkey
 '''
-async def send_request(data, wallet_handle):
-    # get your did, your verkey from wallet
+async def send_request(wallet_handle, owner):
+
+    # get did and vk
+    (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
 
     # get endpoint
-
-    # get their endpoint
+    endpoint = input('Enter endpoint of receipient (http ip addresss):').strip()
 
     # make http request
+    msg_json = json.dumps(
+        {
+            "type":"CONN_RES",
+            "did" : my_did,
+            "data": {
+                "endpoint":endpoint,
+                "owner": owner,
+                "verkey": my_vk
+            }
+        }
+    )
 
     # send to server
-
-    pass
+    async with aiohttp.ClientSession() as session:
+        async with session.post(endpoint, data=msg_json) as resp:
+            print(resp.status)
+            print(await resp.text())
 
 '''
     sends a connection response should be anon_encrypted.
