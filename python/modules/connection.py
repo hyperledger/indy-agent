@@ -2,7 +2,8 @@ import asyncio
 import time
 import re
 import json
-from indy import crypto, did, wallet
+import aiohttp
+from indy import crypto, did, wallet, pairwise
 
 '''
     decrypts anoncrypted connection response 
@@ -23,6 +24,10 @@ async def handle_request(data, wallet_handle):
     verkey = data['verkey']
     owner = data['owner']
 
+    accept = input('{} would like to connect with you. Accept? [Y/n]'.format(owner)).strip()
+    if accept != '' and accept[0].lower() != 'y':
+        return
+
     ident_json = json.dumps({
                              "did": did_str,
                              "verkey": verkey
@@ -32,7 +37,9 @@ async def handle_request(data, wallet_handle):
                             "owner": owner,
                             "endpoint": endpoint
                             })
-    print(ident_json)
+
+    (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
+    print('my_did and verkey = %s %s' % (my_did, my_vk))
 
     await did.store_their_did(wallet_handle, ident_json)
     print("did and verkey stored")
@@ -44,9 +51,10 @@ async def handle_request(data, wallet_handle):
     await did.set_did_metadata(wallet_handle, did_str, meta_json)
     print("meta_data stored")
 
-    owner_key = await did.key_for_local_did(wallet_handle, did_str)
-    print("owner's key: %s" % owner_key)
+    await pairwise.create_pairwise(wallet_handle, did_str, my_did, json.dumps({"hello":"world"}))
+    print("created pairwise")
 
+    await send_response(wallet_handle, did_str)
 
 
 '''
@@ -88,6 +96,13 @@ def send_request(data, wallet_handle):
     
     - user DID, and verkey
 '''
-def send_response(data, wallet_handle):
+async def send_response(wallet_handle, to_did):
+    #find endpoint
+    meta = json.loads(await did.get_did_metadata(wallet_handle, to_did))
+    endpoint = meta['endpoint']
+    print(endpoint)
+    async with aiohttp.ClientSession() as session:
+        async with session.post('http://httpbin.org/post', data=b'data') as resp:
+            print(resp.status)
+            print(await resp.text())
 
-    pass
