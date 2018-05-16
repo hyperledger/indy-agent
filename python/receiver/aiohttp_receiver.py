@@ -19,7 +19,7 @@ class AioHttpReceiver(BaseReceiver):
 
     def start(self, event_loop):
         server = web.Server(self.default_handler)
-        print("======= Listening on http://127.0.0.1:8080/ ======")
+        print("======= Listening on http://127.0.0.1:{}/ ======".format(self.port))
         return event_loop.create_server(server, "127.0.0.1", self.port)
 
     async def recv(self):
