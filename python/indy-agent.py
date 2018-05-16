@@ -36,7 +36,10 @@ async def init():
 
 async def main():
     wallet_handle = await init()
+
     await router.register("CONN_REQ", connection.handle_request)
+    await router.register("CONN_RES", connection.handle_response)
+
     while True:
         msg_bytes = await receiver.recv()
         print("Message received:\n\tbytes: {}".format(msg_bytes))
