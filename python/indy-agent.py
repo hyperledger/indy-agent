@@ -10,8 +10,9 @@ import serializer.json_serializer as Serializer
 q = asyncio.Queue()
 loop = asyncio.get_event_loop()
 
-port = os.environ('INDY_AGENT_PORT')
-if not port:
+if 'INDY_AGENT_PORT' in os.environ.keys():
+    port = int(os.environ['INDY_AGENT_PORT'])
+else:
     port = 8080
 
 receiver = Receiver(q, port)
