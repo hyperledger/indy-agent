@@ -1,5 +1,5 @@
 import json
-from .message import Message
+from model.message import Message
 
 def unpack(dump):
     msg_dict = json.loads(dump)

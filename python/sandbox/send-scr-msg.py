@@ -1,7 +1,7 @@
 import asyncio
 import time
 import re
-from indy import crypto, did, wallet, signus
+from indy import crypto, did, wallet
 
 
 # Step 5 code goes here, replacing the prep() stub.

@@ -1,10 +1,9 @@
 import asyncio
-from indy import crypto, did, wallet
+from indy import did, wallet
 
 from receiver.aiohttp_receiver import AioHttpReceiver as Receiver
 from router.simple_router import SimpleRouter as Router
 import modules.connection as connection
-from serializer.message import Message
 import serializer.json_serializer as Serializer
 
 q = asyncio.Queue()
