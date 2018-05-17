@@ -1,5 +1,6 @@
 import aiohttp
 from aiohttp import web
+<<<<<<< HEAD
 import json
 from indy import wallet
 import aiohttp_jinja2
@@ -31,3 +32,9 @@ def redirect_to_init():
 def require_init(agent):
     if not agent_ready(agent):
         redirect_to_init()
+=======
+
+def require_init(agent):
+    if not agent.initialized
+        raise web.HTTPFound('/init')
+>>>>>>> bf6457b550ec09135d038c3aebbca0ee6c9a87b6
