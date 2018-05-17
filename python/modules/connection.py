@@ -54,7 +54,7 @@ async def handle_request(msg, wallet_handle):
     await pairwise.create_pairwise(wallet_handle, did_str, my_did, json.dumps({"hello":"world"}))
     print("created pairwise")
 
-    await send_response(wallet_handle, did_str)
+    #await send_response(wallet_handle, did_str)
 
 
 '''
