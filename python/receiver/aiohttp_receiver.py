@@ -3,7 +3,7 @@
 import asyncio
 from aiohttp import web
 
-import site
+import view
 from .base_receiver import BaseReceiver
 
 class AioHttpReceiver(BaseReceiver):
@@ -11,7 +11,7 @@ class AioHttpReceiver(BaseReceiver):
         self.msg_queue = queue
 
     async def handle_message(self, request):
-        site.require_init(request.app)
+        view.require_init(request.app)
 
         msg = await request.read()
         await self.msg_queue.put(msg)
