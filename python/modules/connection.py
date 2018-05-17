@@ -94,7 +94,7 @@ async def send_request(wallet_handle, owner):
             "type":"CONN_RES",
             "did" : my_did,
             "data": {
-                "endpoint":endpoint,
+                "endpoint": endpoint,
                 "owner": owner,
                 "verkey": my_vk
             }

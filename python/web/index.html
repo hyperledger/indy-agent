@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My Sovrin Agent</title>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-black.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <!-- Header -->
+        <header class="w3-container w3-theme w3-padding" id="myHeader">
+            <i onclick="w3_open()" class="fa fa-bars w3-xlarge w3-button w3-theme"></i>
+            <div class="w3-center">
+                <img src="http://www.windley.com/archives/2018/01/logo-large.png">
+            </div>
+        </header>
+
+        <!-- Modal -->
+        <div id="id01" class="w3-modal">
+            <div class="w3-modal-content w3-card-4 w3-animate-top">
+                <header class="w3-container w3-theme-l1">
+        <span onclick="document.getElementById('id01').style.display='none'"
+              class="w3-button w3-display-topright">×</span>
+                    <h4>Oh snap! We just showed you a modal..</h4>
+                    <h5>Because we can <i class="fa fa-smile-o"></i></h5>
+                </header>
+                <div class="w3-padding">
+                    <p>Cool huh? Ok, enough teasing around..</p>
+                    <p>Go to our <a class="w3-btn" href="/w3css/default.asp">W3.CSS Tutorial</a> to learn more!</p>
+                </div>
+                <footer class="w3-container w3-theme-l1">
+                    <p>Modal footer</p>
+                </footer>
+            </div>
+        </div>
+
+        <div class="w3-bar w3-theme" id="menubar">
+            <a onclick="document.getElementById('id01').style.display='block'" class="w3-right w3-bar-item w3-button w3-padding-16">About</a>
+            <a class="w3-left w3-bar-item w3-button w3-padding-16" onclick="showTab('credentials')" >Credentials</a>
+            <a class="w3-left w3-bar-item w3-button w3-padding-16" onclick="showTab('relationships')" >Relationships</a>
+            <a class="w3-left w3-bar-item w3-button w3-padding-16" onclick="showTab('messages')" >Messages</a>
+        </div>
+
+        <div class="w3-row-padding w3-center w3-margin-top">
+            <div id="credentials" class="tab" style="display:none;">
+                <p>My Credentials</p>
+            </div>
+            <div id="relationships" class="tab" style="display:none;" >
+                <p>My Relationships</p>
+            </div>
+            <div id="messages" class="tab" >
+                <div class="w3-half">
+                    <%for(var message of messages) {%>
+                        <div class="center w3-padding">
+                            <div class="w3-card w3-container" >
+                                <!--<h3>From: <%=message.did%></h3><br>-->
+                                <p>Timestamp: <%=message.timestamp%></p>
+                                <p>Message: <%=JSON.stringify(message.message)%></p>
+                            </div>
+                        </div>
+                    <%}%>
+                </div>
+                <div class="w3-half w3-right">
+                    <form class="w3-container w3-card-4 w3-padding" action="/api/send_message" method="POST" target="_self">
+                        <div class="w3-section">
+                            Recipient: <input class="w3-input" type="text" name="did" value="<%=publicDid%>">
+                        </div>
+                        <div class="w3-section">
+                            Message: <textarea class="w3-input" name="message" rows="6"></textarea>
+                        </div>
+                        <input class="w3-btn w3-white w3-border" type="submit">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <footer></footer>
+        <script>
+            function showTab(id) {
+                let i;
+                let x = document.getElementsByClassName("tab");
+                for (i = 0; i < x.length; i++) {
+                    x[i].style.display = "none";
+                }
+                document.getElementById(id).style.display = "block";
+            }
+        </script>
+    </body>
+</html>
