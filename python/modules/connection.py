@@ -3,6 +3,7 @@ import time
 import re
 import json
 import aiohttp
+from aiohttp import web
 from indy import crypto, did, wallet, pairwise
 
 '''
@@ -80,7 +81,10 @@ async def handle_response(msg, wallet_handle):
        - URL of agent
        - Public verkey
 '''
-async def send_request(wallet_handle, owner):
+async def send_request(request):
+    wallet_handle = request.app['wallet_handle']
+    owner = request.app['owner']
+    data = json.loads(request.read())
 
     # get did and vk
     (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
@@ -145,3 +149,8 @@ async def send_response(wallet_handle, to_did):
             print(resp.status)
             print(await resp.text())
 
+async def connections(request):
+    return web.json_response(request.app['connections'])
+
+async def requests(request):
+    return web.json_response(request.app['received_requests'])
