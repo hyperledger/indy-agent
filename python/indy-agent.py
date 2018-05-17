@@ -17,6 +17,7 @@ import serializer.json_serializer as Serializer
 import jinja2
 from aiohttp_index import IndexMiddleware
 import aiohttp_jinja2
+import view.site_handlers as site_handlers
 
 if 'INDY_AGENT_PORT' in os.environ.keys():
     port = int(os.environ['INDY_AGENT_PORT'])
@@ -34,7 +35,7 @@ aiohttp_jinja2.setup(agent,
     loader=jinja2.FileSystemLoader(os.path.realpath('view/templates/')))
 
 routes = [
-    web.get('/', view.index),
+    web.get('/', site_handlers.index),
     web.post('/indy', agent['msg_receiver'].handle_message),
     web.post('/indy/init', init.initialize_agent),
     web.get('/indy/connections', connection.connections),
