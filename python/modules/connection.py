@@ -2,6 +2,7 @@ import asyncio
 import time
 import re
 import json
+import datetime
 import aiohttp
 from aiohttp import web
 from indy import crypto, did, wallet, pairwise
@@ -16,11 +17,39 @@ from indy import crypto, did, wallet, pairwise
 
 '''
     Handles connection requests from other peers.
+
+    From message router.
 '''
-async def handle_request(msg, wallet_handle):
+async def handle_request_received(msg, agent):
+    agent.received_requests[msg.did] = msg
+
+'''
+    decrypts anoncrypted connection response
+'''
+async def handle_response(msg, agent):
+    their_did = msg.did
+    my_did = json.loads(await pairwise.get_pairwise(wallet_handle, their_did))['my_did']
+    my_vk = await did.key_for_local_did(wallet_handle, my_did)
+
+    decrypted_data = await crypto.anon_decrypt(my_vk, msg.data)
+    print(decrypted_data)
+
+async def handle_request_accepted(request):
+    """ From web router.
+    """
+    accepted_data = json.loads(await request.read())
+    agent = request.app['agent']
+    did_str = accepted_data['did']
+
+    if did_str not in agent.received_requests:
+        return
+    if not accepted_data['accepted']:
+        agent.received_requests.pop(did_str)
+
+    msg = agent.received_requests[did_str]
+
     #TODO: validate correct format for incoming data
     data = msg.data
-    did_str = msg.did
     endpoint = data['endpoint']
     verkey = data['verkey']
     owner = data['owner']
@@ -59,17 +88,6 @@ async def handle_request(msg, wallet_handle):
 
 
 '''
-    decrypts anoncrypted connection response
-'''
-async def handle_response(msg, wallet_handle):
-    their_did = msg.did
-    my_did = json.loads(await pairwise.get_pairwise(wallet_handle, their_did))['my_did']
-    my_vk = await did.key_for_local_did(wallet_handle, my_did)
-
-    decrypted_data = await crypto.anon_decrypt(my_vk, msg.data)
-    print(decrypted_data)
-
-'''
     sends a connection request.
 
     a connection response contains:
@@ -82,8 +100,9 @@ async def handle_response(msg, wallet_handle):
        - Public verkey
 '''
 async def send_request(request):
-    wallet_handle = request.app['wallet_handle']
-    owner = request.app['owner']
+    agent = request.app['agent']
+    wallet_handle = agent.wallet_handle
+    owner = agent.me
     data = json.loads(request.read())
 
     # get did and vk
@@ -150,7 +169,7 @@ async def send_response(wallet_handle, to_did):
             print(await resp.text())
 
 async def connections(request):
-    return web.json_response(request.app['connections'])
+    return web.json_response({})
 
 async def requests(request):
-    return web.json_response(request.app['received_requests'])
+    return web.json_response(request.app['agent'].received_requests)
