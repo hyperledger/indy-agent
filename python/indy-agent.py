@@ -20,7 +20,11 @@ agent = web.Application()
 agent['msg_router'] = Router()
 agent['msg_receiver'] =  Receiver(asyncio.Queue())
 
-agent.add_routes([web.post('/', agent['msg_receiver'].handle_message)])
+agent.add_routes([web.post('/indy', agent['msg_receiver'].handle_message)])
+
+
+agent.add_routes([web.static('/', os.path.realpath('site/'))])
+
 
 runner = web.AppRunner(agent)
 loop.run_until_complete(runner.setup())
