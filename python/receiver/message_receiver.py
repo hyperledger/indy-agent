@@ -1,17 +1,16 @@
-""" Asynchronous http server using aiohttp. """
+""" Message receiver handlers. """
 
 import asyncio
 from aiohttp import web
 
-import view
-from .base_receiver import BaseReceiver
+import web_utils as utils
 
-class AioHttpReceiver(BaseReceiver):
+class MessageReceiver():
     def __init__(self, queue):
         self.msg_queue = queue
 
     async def handle_message(self, request):
-        view.require_init(request.app)
+        utils.require_init(request.app['agent'])
 
         msg = await request.read()
         await self.msg_queue.put(msg)
