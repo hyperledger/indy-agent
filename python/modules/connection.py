@@ -20,6 +20,7 @@ from modules import init
 
 async def handle_request_received(msg, agent):
     agent.received_requests[msg.did] = msg
+    print(agent.received_requests)
 
 
 async def handle_response(msg, agent):
