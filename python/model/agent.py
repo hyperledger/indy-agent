@@ -4,7 +4,7 @@ class Agent:
         self.wallet_handle = None
         self.pool_handle = None
         self.received_requests = {}
-        
+        self.connections = {}
         self.initialized = False
 
 

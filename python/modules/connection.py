@@ -5,7 +5,9 @@ import json
 import datetime
 import aiohttp
 from aiohttp import web
+import aiohttp_jinja2
 from indy import crypto, did, wallet, pairwise
+from modules import init
 
 '''
     decrypts anoncrypted connection response
@@ -15,18 +17,16 @@ from indy import crypto, did, wallet, pairwise
 #    msg = decrypted.__getitem__(1).decode()
 #    print(msg)
 
-'''
-    Handles connection requests from other peers.
 
-    From message router.
-'''
 async def handle_request_received(msg, agent):
     agent.received_requests[msg.did] = msg
 
-'''
-    decrypts anoncrypted connection response
-'''
+
 async def handle_response(msg, agent):
+    """
+        decrypts anoncrypted connection response
+    """
+    wallet_handle = agent['wallet_handle']
     their_did = msg.did
     my_did = json.loads(await pairwise.get_pairwise(wallet_handle, their_did))['my_did']
     my_vk = await did.key_for_local_did(wallet_handle, my_did)
@@ -34,11 +34,13 @@ async def handle_response(msg, agent):
     decrypted_data = await crypto.anon_decrypt(my_vk, msg.data)
     print(decrypted_data)
 
+
 async def handle_request_accepted(request):
     """ From web router.
     """
     accepted_data = json.loads(await request.read())
     agent = request.app['agent']
+    wallet_handle = agent.wallet_handle
     did_str = accepted_data['did']
 
     if did_str not in agent.received_requests:
@@ -84,38 +86,47 @@ async def handle_request_accepted(request):
     await pairwise.create_pairwise(wallet_handle, did_str, my_did, json.dumps({"hello":"world"}))
     print("created pairwise")
 
-    #await send_response(wallet_handle, did_str)
+    # await send_response(wallet_handle, did_str)
 
 
-'''
-    sends a connection request.
-
-    a connection response contains:
-     - data concerning the request:
-       - Name of Sender
-       - Purpose
-
-       - DID@A:B
-       - URL of agent
-       - Public verkey
-'''
+@aiohttp_jinja2.template('index.html')
 async def send_request(request):
+
+    """
+        sends a connection request.
+
+        a connection response contains:
+         - data concerning the request:
+           - Name of Sender
+           - Purpose
+
+           - DID@A:B
+           - URL of agent
+           - Public verkey
+    """
+    await init.initialize_agent(request)
     agent = request.app['agent']
+
+    req_data = await request.post()
+
+    me = req_data['agent_name']
+    agent.me = me
+    endpoint = req_data['endpoint']
     wallet_handle = agent.wallet_handle
     owner = agent.me
-    data = json.loads(request.read())
+
 
     # get did and vk
     (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
 
     # get endpoint
-    endpoint = input('Enter endpoint of receipient (http ip addresss):').strip()
+
 
     # make http request
     msg_json = json.dumps(
         {
-            "type":"CONN_RES",
-            "did" : my_did,
+            "type": "CONN_RES",
+            "did": my_did,
             "data": {
                 "endpoint": endpoint,
                 "owner": owner,
@@ -124,21 +135,44 @@ async def send_request(request):
         }
     )
 
+    # add to queue
+    agent.connections[endpoint] = {
+        "endpoint": endpoint,
+        "time": str(datetime.datetime.now()).split(' ')[1].split('.')[0],
+        "status": "pending"
+    }
+
     # send to server
     async with aiohttp.ClientSession() as session:
         async with session.post(endpoint, data=msg_json) as resp:
             print(resp.status)
             print(await resp.text())
 
-'''
-    sends a connection response should be anon_encrypted.
 
-    a connection response will include:
+    # Testing for webpage:
+    conns = agent.connections
+    reqs = agent.received_requests
+    me = agent.me
+    if me is None or me == '':
+        me = 'Default'
+    return {
+        "agent_name": me,
+        "connections": conns,
+        "requests": reqs
+    }
 
-    - user DID, and verkey
-'''
+
+
 async def send_response(wallet_handle, to_did):
-    #find endpoint
+    """
+        sends a connection response should be anon_encrypted.
+
+        a connection response will include:
+
+        - user DID, and verkey
+    """
+
+    # find endpoint
     meta = json.loads(await did.get_did_metadata(wallet_handle, to_did))
     endpoint = meta['endpoint']
     print(endpoint)
@@ -168,8 +202,3 @@ async def send_response(wallet_handle, to_did):
             print(resp.status)
             print(await resp.text())
 
-async def connections(request):
-    return web.json_response({})
-
-async def requests(request):
-    return web.json_response(request.app['agent'].received_requests)

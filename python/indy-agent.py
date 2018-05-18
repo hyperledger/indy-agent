@@ -37,9 +37,14 @@ aiohttp_jinja2.setup(agent,
 routes = [
     web.get('/', site_handlers.index),
     web.post('/indy', agent['msg_receiver'].handle_message),
-    web.post('/indy/init', init.initialize_agent),
-    web.get('/indy/connections', connection.connections),
-    web.get('/indy/requests', connection.requests),
+    web.post('/indy/request', connection.send_request),
+    web.get('/indy/connections', site_handlers.connections),
+    web.get('/indy/requests', site_handlers.requests),
+    web.post('/indy/init', init.initialize_agent)
+
+
+
+
 ]
 
 agent.add_routes(routes)
