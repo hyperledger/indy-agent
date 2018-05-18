@@ -17,26 +17,28 @@
         </header>
 
         <!-- Modal -->
-        <!--<div id="id01" class="w3-modal">-->
-            <!--<div class="w3-modal-content w3-card-4 w3-animate-top">-->
-                <!--<header class="w3-container w3-theme-l1">-->
-        <!--<span onclick="document.getElementById('id01').style.display='none'"-->
-              <!--class="w3-button w3-display-topright">×</span>-->
-                    <!--<h4>Oh snap! We just showed you a modal..</h4>-->
-                    <!--<h5>Because we can <i class="fa fa-smile-o"></i></h5>-->
-                <!--</header>-->
-                <!--<div class="w3-padding">-->
-                    <!--<p>Cool huh? Ok, enough teasing around..</p>-->
-                    <!--<p>Go to our <a class="w3-btn" href="/w3css/default.asp">W3.CSS Tutorial</a> to learn more!</p>-->
-                <!--</div>-->
-                <!--<footer class="w3-container w3-theme-l1">-->
-                    <!--<p>Modal footer</p>-->
-                <!--</footer>-->
-            <!--</div>-->
-        <!--</div>-->
+        <div id="id01" class="w3-modal">
+            <div class="w3-modal-content w3-card-4 w3-animate-top">
+                <header class="w3-container w3-theme-l1">
+        <span id="exit" onclick="document.getElementById('id01').style.display='none'"
+              class="w3-button w3-display-topright">×</span>
+                    <h4>Welcome to the Indy Reference Agent!</h4>
+                    <h5>Please enter your name to create a wallet</h5>
+                </header>
+                 <form action="/indy/init" method="post">
+                   Name:
+                    <input type="text" name="agent_name" value="Default">
+                        <input type="submit" value="Make Wallet" onclick="document.getElementById('id01').style.display='none'">
+                </form>
+
+                <footer class="w3-container w3-theme-l1">
+                    <p> created by @mdb & @dbluhm at sovrin</p>
+                </footer>
+            </div>
+        </div>
 
         <div class="w3-bar w3-theme" id="menubar">
-            <a onclick="document.getElementById('id01').style.display='block'" class="w3-right w3-bar-item w3-button w3-padding-16">About</a>
+            <a onclick="document.getElementById('id01').style.display='block'" class="w3-right w3-bar-item w3-button w3-padding-16">New Wallet</a>
             <a class="w3-left w3-bar-item w3-button w3-padding-16" onclick="showTab('relationships')" >Relationships</a>
             <a class="w3-left w3-bar-item w3-button w3-padding-16" onclick="showTab('credentials')" >Credentials</a>
             <a class="w3-left w3-bar-item w3-button w3-padding-16" onclick="showTab('messages')" >Messages</a>
@@ -49,13 +51,39 @@
                 <p>My Credentials</p>
             </div>
 
-              <!-- credentials page -->
-            <div id="relationships" class="tab" style="display:none;" >
+              <!-- relationships page -->
+            <div id="relationships" class="tab" >
                 <p>My Connections</p>
+
+                <h3>{{ agent_name }}</h3>
+
+                <form action="/indy/request" method="post">
+                   Name:
+                    <input type="text" name="agent_name" value="Default">
+                    Endpoint:<br>
+                  <input type="text" name="endpoint" value="http://localhost:8080">
+                  <br><br>
+                  <input type="submit" value="Send Request">
+                </form>
+                <h4>Connections</h4>
+                <ul>
+                    {% for conn in connections %}
+                        <li>{{ conn }}</li>
+                    {% endfor %}
+                </ul>
+                <br> <br>
+                <h4>Requests</h4>
+                <ul>
+                    {% for req in requests %}
+                        <li>{{ req }}</li>
+                    {% endfor %}
+                </ul>
+
+
             </div>
 
               <!-- messages page -->
-            <div id="messages" class="tab" >
+            <div id="messages" class="tab" style="display:none;" >
                 <div class="w3-half">
                         <div class="center w3-padding">
                             <div class="w3-card w3-container" >
@@ -88,6 +116,14 @@
                 }
                 document.getElementById(id).style.display = "block";
             }
+
+            function showModal(first) {
+                if(first == true) {
+                    document.getElementById('id01').style.display='block';
+                }
+            }
+
+
         </script>
     </body>
 </html>
