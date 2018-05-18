@@ -13,8 +13,8 @@ def index(request):
         first = True
     return {
                 "agent_name": me,
-                "connections": conns,
-                "requests": reqs,
+                "connections": json.dumps(conns),
+                "requests": json.dumps(reqs),
                 "first": first
             }
 
