@@ -41,10 +41,6 @@ routes = [
     web.get('/indy/connections', site_handlers.connections),
     web.get('/indy/requests', site_handlers.requests),
     web.post('/indy/init', init.initialize_agent)
-
-
-
-
 ]
 
 agent.add_routes(routes)
@@ -60,6 +56,7 @@ async def message_process(agent):
 
     await msg_router.register("CONN_REQ", connection.handle_request_received)
     await msg_router.register("CONN_RES", connection.handle_response)
+
     print('===== Server Started on: http://localhost:{} ====='.format(port))
     while True:
         msg_bytes = await msg_receiver.recv()
