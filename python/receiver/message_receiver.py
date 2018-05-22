@@ -10,8 +10,6 @@ class MessageReceiver():
         self.msg_queue = queue
 
     async def handle_message(self, request):
-        utils.require_init(request.app['agent'])
-
         msg = await request.read()
         await self.msg_queue.put(msg)
         raise web.HTTPAccepted()

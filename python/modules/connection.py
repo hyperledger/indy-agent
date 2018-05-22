@@ -8,6 +8,7 @@ from aiohttp import web
 import aiohttp_jinja2
 from indy import crypto, did, wallet, pairwise
 from modules import init
+import serializer.json_serializer as Serializer
 
 '''
     decrypts anoncrypted connection response
@@ -19,13 +20,12 @@ from modules import init
 
 
 async def handle_request_received(msg, agent):
-    agent.received_requests[msg.did] = msg
+    agent.received_requests[msg.did] = Serializer.pack(msg)
     print(agent.received_requests)
 
 
 async def handle_response(msg, agent):
-    """
-        decrypts anoncrypted connection response
+    """ decrypts anoncrypted connection response
     """
     wallet_handle = agent['wallet_handle']
     their_did = msg.did
@@ -92,11 +92,9 @@ async def handle_request_accepted(request):
 
 @aiohttp_jinja2.template('index.html')
 async def send_request(request):
+    """ sends a connection request.
 
-    """
-        sends a connection request.
-
-        a connection response contains:
+        a connection request contains:
          - data concerning the request:
            - Name of Sender
            - Purpose
@@ -105,7 +103,7 @@ async def send_request(request):
            - URL of agent
            - Public verkey
     """
-    await init.initialize_agent(request)
+
     agent = request.app['agent']
 
     req_data = await request.post()
@@ -126,7 +124,7 @@ async def send_request(request):
     # make http request
     msg_json = json.dumps(
         {
-            "type": "CONN_RES",
+            "type": "CONN_REQ",
             "did": my_did,
             "data": {
                 "endpoint": endpoint,
@@ -144,6 +142,7 @@ async def send_request(request):
     }
 
     # send to server
+    print("Sending to {}".format(endpoint))
     async with aiohttp.ClientSession() as session:
         async with session.post(endpoint, data=msg_json) as resp:
             print(resp.status)

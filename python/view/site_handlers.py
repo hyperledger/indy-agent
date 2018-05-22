@@ -3,6 +3,7 @@ import json
 
 @aiohttp_jinja2.template('index.html')
 def index(request):
+    print("Handling /")
     agent = request.app['agent']
     conns = agent.connections
     reqs = agent.received_requests
@@ -13,8 +14,8 @@ def index(request):
         first = True
     return {
                 "agent_name": me,
-                "connections": json.dumps(conns),
-                "requests": json.dumps(reqs),
+                "connections": conns,
+                "requests": reqs,
                 "first": first
             }
 
@@ -30,10 +31,12 @@ def connections(request):
 
 @aiohttp_jinja2.template('index.html')
 def requests(request):
+    print("handling requests")
     reqs = request.app['agent'].received_requests
-    return{}
+    return {}
 
 
 @aiohttp_jinja2.template('index.html')
 def response(request):
+    print("handling response")
     return {}
