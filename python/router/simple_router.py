@@ -14,8 +14,8 @@ class SimpleRouter(BaseRouter):
 
         self.routes[msg_type] = handler
 
-    async def route(self, msg, wallet_handle):
+    async def route(self, msg, agent):
         """ Route a message to it's registered callback
         """
         if msg.type in self.routes.keys():
-            await self.routes[msg.type](msg, wallet_handle)
+            await self.routes[msg.type](msg, agent)

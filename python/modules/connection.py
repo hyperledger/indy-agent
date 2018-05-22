@@ -27,7 +27,11 @@ async def handle_request_received(msg, agent):
 async def handle_response(msg, agent):
     """ decrypts anoncrypted connection response
     """
-    wallet_handle = agent['wallet_handle']
+    print(agent)
+    print(agent.wallet_handle)
+    print(agent.received_requests)
+    print(agent.connections)
+    wallet_handle = agent.wallet_handle
     their_did = msg.did
     my_did = json.loads(await pairwise.get_pairwise(wallet_handle, their_did))['my_did']
     my_vk = await did.key_for_local_did(wallet_handle, my_did)
@@ -39,17 +43,14 @@ async def handle_response(msg, agent):
 async def handle_request_accepted(request):
     """ From web router.
     """
-    accepted_data = json.loads(await request.read())
+    accept_did = request.match_info['did']
     agent = request.app['agent']
     wallet_handle = agent.wallet_handle
-    did_str = accepted_data['did']
 
-    if did_str not in agent.received_requests:
-        return
-    if not accepted_data['accepted']:
-        agent.received_requests.pop(did_str)
+    if accept_did not in agent.received_requests:
+        raise HTTPNotFound()
 
-    msg = agent.received_requests[did_str]
+    msg = Serializer.unpack(agent.received_requests[accept_did])
 
     #TODO: validate correct format for incoming data
     data = msg.data
@@ -62,7 +63,7 @@ async def handle_request_accepted(request):
     #    return
 
     ident_json = json.dumps({
-                             "did": did_str,
+                             "did": accept_did,
                              "verkey": verkey
                              })
 
@@ -77,17 +78,19 @@ async def handle_request_accepted(request):
     await did.store_their_did(wallet_handle, ident_json)
     print("did and verkey stored")
 
-    await did.set_endpoint_for_did(wallet_handle, did_str, endpoint, verkey)
+    await did.set_endpoint_for_did(wallet_handle, accept_did, endpoint, verkey)
     #print("endpoint stored")
 
     #print(meta_json)
-    await did.set_did_metadata(wallet_handle, did_str, meta_json)
+    await did.set_did_metadata(wallet_handle, accept_did, meta_json)
     print("meta_data stored")
 
-    await pairwise.create_pairwise(wallet_handle, did_str, my_did, json.dumps({"hello":"world"}))
+    await pairwise.create_pairwise(wallet_handle, accept_did, my_did, json.dumps({"hello":"world"}))
     print("created pairwise")
 
-    # await send_response(wallet_handle, did_str)
+    await send_response(accept_did, agent)
+
+    raise web.HTTPFound('/')
 
 
 @aiohttp_jinja2.template('index.html')
@@ -109,7 +112,8 @@ async def send_request(request):
     req_data = await request.post()
 
     me = req_data['agent_name']
-    agent.me = me
+    #agent.me = me # This doesn't seem like the desired behavior?
+    our_endpoint = agent.endpoint
     endpoint = req_data['endpoint']
     wallet_handle = agent.wallet_handle
     owner = agent.me
@@ -127,7 +131,7 @@ async def send_request(request):
             "type": "CONN_REQ",
             "did": my_did,
             "data": {
-                "endpoint": endpoint,
+                "endpoint": our_endpoint,
                 "owner": owner,
                 "verkey": my_vk
             }
@@ -163,9 +167,8 @@ async def send_request(request):
 
 
 
-async def send_response(wallet_handle, to_did):
-    """
-        sends a connection response should be anon_encrypted.
+async def send_response(to_did, agent):
+    """ sends a connection response should be anon_encrypted.
 
         a connection response will include:
 
@@ -173,6 +176,7 @@ async def send_response(wallet_handle, to_did):
     """
 
     # find endpoint
+    wallet_handle = agent.wallet_handle
     meta = json.loads(await did.get_did_metadata(wallet_handle, to_did))
     endpoint = meta['endpoint']
     print(endpoint)

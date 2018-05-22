@@ -7,6 +7,7 @@ async def initialize_agent(request):
     agent = request.app['agent']
     data = await request.post()
     agent.me = data['agent_name']
+    agent.endpoint = data['endpoint']
 
     wallet_name = '%s-wallet' % agent.me
 

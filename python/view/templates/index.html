@@ -28,6 +28,8 @@
                  <form action="/indy/init" method="post">
                    Name:
                     <input type="text" name="agent_name" value="Default">
+                   Endpoint:
+                    <input type="text" name="endpoint" value="Default">
                         <input type="submit" value="Make Wallet" onclick="document.getElementById('id01').style.display='none'">
                 </form>
 
@@ -75,7 +77,7 @@
                 <h4>Requests</h4>
                 <ul>
                     {% for req in requests %}
-                        <li>{{ req }}</li>
+                    <li>{{ req }} <a href="/indy/accept/{{ req }}">accept</a></li>
                     {% endfor %}
                 </ul>
 
