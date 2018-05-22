@@ -39,6 +39,7 @@ routes = [
     web.post('/indy', agent['msg_receiver'].handle_message),
     web.post('/indy/request', connection.send_request),
     web.get('/indy/connections', site_handlers.connections),
+    web.get('/indy/accept/{did}', connection.handle_request_accepted),
     web.get('/indy/requests', site_handlers.requests),
     web.post('/indy/init', init.initialize_agent)
 ]
