@@ -32,12 +32,34 @@ async def handle_response(msg, agent):
     print(agent.received_requests)
     print(agent.connections)
     wallet_handle = agent.wallet_handle
-    their_did = msg.did
-    my_did = json.loads(await pairwise.get_pairwise(wallet_handle, their_did))['my_did']
+
+    # Get my did and verkey
+    my_did = msg.did
     my_vk = await did.key_for_local_did(wallet_handle, my_did)
 
-    decrypted_data = await crypto.anon_decrypt(my_vk, msg.data)
-    print(decrypted_data)
+    # Anon Decrypt and decode the message
+    decrypted_data = await crypto.anon_decrypt(wallet_handle, my_vk, msg.data)
+
+    json_str = decrypted_data.decode("utf-8")
+    resp_data = json.loads(json_str)
+    print(resp_data)
+
+    # Get their did and vk and store in wallet
+    their_did = resp_data["did"]
+    their_vk = resp_data["verkey"]
+
+    identity_json = json.dumps({
+        "did": their_did,
+        "verkey": their_vk
+    })
+
+    await did.store_their_did(wallet_handle, identity_json)
+    #TODO: Do we want to store the metadata of owner and endpoint with their did?
+
+    # Create pairwise identifier
+    await pairwise.create_pairwise(wallet_handle, their_did, my_did, json.dumps({"test": "this is metadata"}))
+    print("created pairwise")
+
 
 
 async def handle_request_accepted(request):
@@ -79,7 +101,6 @@ async def handle_request_accepted(request):
     print("did and verkey stored")
 
     await did.set_endpoint_for_did(wallet_handle, accept_did, endpoint, verkey)
-    #print("endpoint stored")
 
     #print(meta_json)
     await did.set_did_metadata(wallet_handle, accept_did, meta_json)
@@ -198,7 +219,7 @@ async def send_response(to_did, agent):
 
     envelope = json.dumps({
             'type': 'CONN_RES',
-            'did': my_did,
+            'did': to_did,
             'data': data
             })
     async with aiohttp.ClientSession() as session:

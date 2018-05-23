@@ -19,8 +19,8 @@ from aiohttp_index import IndexMiddleware
 import aiohttp_jinja2
 import view.site_handlers as site_handlers
 
-if 'INDY_AGENT_PORT' in os.environ.keys():
-    port = int(os.environ['INDY_AGENT_PORT'])
+if len(sys.argv) == 2 and str.isdigit(sys.argv[1]):
+    port = int(sys.argv[1])
 else:
     port = 8080
 
