@@ -6,10 +6,10 @@ async def initialize_agent(request):
     print("initializing agent")
     agent = request.app['agent']
     data = await request.post()
-    agent.me = data['agent_name']
+    agent.owner = data['agent_name']
     agent.endpoint = data['endpoint']
 
-    wallet_name = '%s-wallet' % agent.me
+    wallet_name = '%s-wallet' % agent.owner
 
     try:
         await wallet.create_wallet('pool1', wallet_name, None, None, None)

@@ -7,13 +7,13 @@ def index(request):
     agent = request.app['agent']
     conns = agent.connections
     reqs = agent.received_requests
-    me = agent.me
+    owner = agent.owner
     first = False
-    if me is None or me == '':
-        me = 'Default'
+    if owner is None or owner == '':
+        owner = 'Default'
         first = True
     return {
-                "agent_name": me,
+                "agent_name": owner,
                 "connections": conns,
                 "requests": reqs,
                 "first": first

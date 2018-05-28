@@ -133,11 +133,10 @@ async def send_request(request):
     req_data = await request.post()
 
     me = req_data['agent_name']
-    #agent.me = me # This doesn't seem like the desired behavior?
     our_endpoint = agent.endpoint
     endpoint = req_data['endpoint']
     wallet_handle = agent.wallet_handle
-    owner = agent.me
+    owner = agent.owner
 
 
     # get did and vk
@@ -177,11 +176,11 @@ async def send_request(request):
     # Testing for webpage:
     conns = agent.connections
     reqs = agent.received_requests
-    me = agent.me
-    if me is None or me == '':
-        me = 'Default'
+    owner = agent.owner
+    if owner is None or owner == '':
+        owner = 'Default'
     return {
-        "agent_name": me,
+        "agent_name": owner,
         "connections": conns,
         "requests": reqs
     }
