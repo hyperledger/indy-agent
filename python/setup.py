@@ -1,4 +1,5 @@
-
+""" pip package install for indy-agent.
+"""
 from distutils.core import setup
 
 setup(

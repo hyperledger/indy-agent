@@ -3,8 +3,6 @@
 import asyncio
 from aiohttp import web
 
-import web_utils as utils
-
 class MessageReceiver():
     def __init__(self, queue):
         self.msg_queue = queue
