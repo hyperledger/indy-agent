@@ -47,9 +47,9 @@ ROUTES = [
     web.get('/', site_handlers.index),
     web.post('/indy', AGENT['msg_receiver'].handle_message),
     web.post('/indy/request', connection.send_request),
-    web.get('/indy/connections', site_handlers.connections),
+    #web.get('/indy/connections', site_handlers.connections),
     web.get('/indy/accept/{did}', connection.handle_request_accepted),
-    web.get('/indy/requests', site_handlers.requests),
+    #web.get('/indy/requests', site_handlers.requests),
     web.post('/indy/init', init.initialize_agent)
 ]
 
