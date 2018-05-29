@@ -1,36 +1,30 @@
-import asyncio
-import time
-import re
+""" Module to handle the connection process.
+"""
+
+# pylint: disable=import-error
+
 import json
 import datetime
 import aiohttp
 from aiohttp import web
 import aiohttp_jinja2
-from indy import crypto, did, wallet, pairwise
-from modules import init
+from indy import crypto, did, pairwise
 import serializer.json_serializer as Serializer
 
-'''
-    decrypts anoncrypted connection response
-'''
-#async def handle_response(self, data, wallet_handle):
-#    decrypted = await crypto.auth_decrypt(wallet_handle, my_vk, data)
-#    msg = decrypted.__getitem__(1).decode()
-#    print(msg)
-
-
 async def handle_request_received(msg, agent):
+    """ Handle reception of request, storing to be accepted later.
+    """
     agent.received_requests[msg.did] = Serializer.pack(msg)
-    print(agent.received_requests)
 
 
 async def handle_response(msg, agent):
-    """ decrypts anoncrypted connection response
+    """ Handle reception of connection response.
+
+        Currently this relies on the did sent with the request being returned
+        with the response as an identifier so we can decrypt the message.
+
+        Relying on a nonce instead would be better.
     """
-    print(agent)
-    print(agent.wallet_handle)
-    print(agent.received_requests)
-    print(agent.connections)
     wallet_handle = agent.wallet_handle
 
     # Get my did and verkey
@@ -42,7 +36,6 @@ async def handle_response(msg, agent):
 
     json_str = decrypted_data.decode("utf-8")
     resp_data = json.loads(json_str)
-    print(resp_data)
 
     # Get their did and vk and store in wallet
     their_did = resp_data["did"]
@@ -57,20 +50,25 @@ async def handle_response(msg, agent):
     #TODO: Do we want to store the metadata of owner and endpoint with their did?
 
     # Create pairwise identifier
-    await pairwise.create_pairwise(wallet_handle, their_did, my_did, json.dumps({"test": "this is metadata"}))
-    print("created pairwise")
+    await pairwise.create_pairwise(
+        wallet_handle,
+        their_did,
+        my_did,
+        json.dumps({"test": "this is metadata"})
+    )
+
 
 
 
 async def handle_request_accepted(request):
-    """ From web router.
+    """ Handle reception of accept connection request message.
     """
     accept_did = request.match_info['did']
     agent = request.app['agent']
     wallet_handle = agent.wallet_handle
 
     if accept_did not in agent.received_requests:
-        raise HTTPNotFound()
+        raise web.HTTPNotFound()
 
     msg = Serializer.unpack(agent.received_requests[accept_did])
 
@@ -80,34 +78,29 @@ async def handle_request_accepted(request):
     verkey = data['verkey']
     owner = data['owner']
 
-    #accept = input('{} would like to connect with you. Accept? [Y/n]'.format(owner)).strip()
-    #if accept != '' and accept[0].lower() != 'y':
-    #    return
+    ident_json = json.dumps(
+        {
+            "did": accept_did,
+            "verkey": verkey
+        }
+    )
 
-    ident_json = json.dumps({
-                             "did": accept_did,
-                             "verkey": verkey
-                             })
+    meta_json = json.dumps(
+        {
+            "owner": owner,
+            "endpoint": endpoint
+        }
+    )
 
-    meta_json = json.dumps({
-                            "owner": owner,
-                            "endpoint": endpoint
-                            })
-
-    (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
-    print('my_did and verkey = %s %s' % (my_did, my_vk))
+    (my_did, _) = await did.create_and_store_my_did(wallet_handle, "{}")
 
     await did.store_their_did(wallet_handle, ident_json)
-    print("did and verkey stored")
 
     await did.set_endpoint_for_did(wallet_handle, accept_did, endpoint, verkey)
 
-    #print(meta_json)
     await did.set_did_metadata(wallet_handle, accept_did, meta_json)
-    print("meta_data stored")
 
     await pairwise.create_pairwise(wallet_handle, accept_did, my_did, json.dumps({"hello":"world"}))
-    print("created pairwise")
 
     await send_response(accept_did, agent)
 
@@ -132,7 +125,6 @@ async def send_request(request):
 
     req_data = await request.post()
 
-    me = req_data['agent_name']
     our_endpoint = agent.endpoint
     endpoint = req_data['endpoint']
     wallet_handle = agent.wallet_handle
@@ -211,18 +203,21 @@ async def send_response(to_did, agent):
     print(my_vk)
 
     data = {
-            'did': my_did,
-            'verkey': my_vk
-            }
+        'did': my_did,
+        'verkey': my_vk
+    }
+
     data = await crypto.anon_crypt(their_vk, json.dumps(data).encode('utf-8'))
 
-    envelope = json.dumps({
+    envelope = json.dumps(
+        {
             'type': 'CONN_RES',
             'did': to_did,
             'data': data
-            })
+        }
+    )
+
     async with aiohttp.ClientSession() as session:
         async with session.post(endpoint, data=envelope) as resp:
             print(resp.status)
             print(await resp.text())
-
