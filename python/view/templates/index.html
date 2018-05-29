@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My Sovrin Agent</title>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-black.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <!-- Header -->
+        <header class="w3-container w3-theme w3-padding" id="myHeader">
+            <i onclick="w3_open()" class="fa fa-bars w3-xlarge w3-button w3-theme"></i>
+            <div class="w3-center">
+                <img src="http://www.windley.com/archives/2018/01/logo-large.png">
+            </div>
+        </header>
+
+        <!-- Modal -->
+        <div id="id01" class="w3-modal">
+            <div class="w3-modal-content w3-card-4 w3-animate-top">
+                <header class="w3-container w3-theme-l1">
+        <span id="exit" onclick="document.getElementById('id01').style.display='none'"
+              class="w3-button w3-display-topright">×</span>
+                    <h4>Welcome to the Indy Reference Agent!</h4>
+                    <h5>Please enter your name to create a wallet</h5>
+                </header>
+                 <form action="/indy/init" method="post">
+                   Name:
+                    <input type="text" name="agent_name" value="Default">
+                   Endpoint:
+                    <input type="text" name="endpoint" value="Default">
+                        <input type="submit" value="Make Wallet" onclick="document.getElementById('id01').style.display='none'">
+                </form>
+
+                <footer class="w3-container w3-theme-l1">
+                    <p>Created by @mdb &amp; @dbluhm at Sovrin</p>
+                </footer>
+            </div>
+        </div>
+
+        <div class="w3-bar w3-theme" id="menubar">
+            <a onclick="document.getElementById('id01').style.display='block'" class="w3-right w3-bar-item w3-button w3-padding-16">New Wallet</a>
+            <a class="w3-left w3-bar-item w3-button w3-padding-16" onclick="showTab('relationships')" >Relationships</a>
+            <a class="w3-left w3-bar-item w3-button w3-padding-16" onclick="showTab('credentials')" >Credentials</a>
+            <a class="w3-left w3-bar-item w3-button w3-padding-16" onclick="showTab('messages')" >Messages</a>
+        </div>
+
+        <div class="w3-row-padding w3-center w3-margin-top">
+
+            <!-- credentials page -->
+            <div id="credentials" class="tab" style="display:none;">
+                <p>My Credentials</p>
+            </div>
+
+              <!-- relationships page -->
+            <div id="relationships" class="tab" >
+                <p>My Connections</p>
+
+                <h3>{{ agent_name }}</h3>
+
+                <form action="/indy/request" method="post">
+                   Name:
+                    <input type="text" name="agent_name" value="Default">
+                    Endpoint:<br>
+                  <input type="text" name="endpoint" value="http://localhost:8080">
+                  <br><br>
+                  <input type="submit" value="Send Request">
+                </form>
+                <h4>Connections</h4>
+                <ul>
+                    {% for conn in connections %}
+                        <li>{{ conn }}</li>
+                    {% endfor %}
+                </ul>
+                <br> <br>
+                <h4>Requests</h4>
+                <ul>
+                    {% for req in requests %}
+                    <li>{{ req }} <a href="/indy/accept/{{ req }}">accept</a></li>
+                    {% endfor %}
+                </ul>
+
+
+            </div>
+
+              <!-- messages page -->
+            <div id="messages" class="tab" style="display:none;" >
+                <div class="w3-half">
+                        <div class="center w3-padding">
+                            <div class="w3-card w3-container" >
+                                <h3>From: </h3><br>
+                                <p>Timestamp:</p>
+                                <p>Message: </p>
+                            </div>
+                        </div>
+                </div>
+                <div class="w3-half w3-right">
+                    <form class="w3-container w3-card-4 w3-padding" action="/api/send_message" method="POST" target="_self">
+                        <div class="w3-section">
+                            Recipient: <input class="w3-input" type="text" name="did" value="">
+                        </div>
+                        <div class="w3-section">
+                            Message: <textarea class="w3-input" name="message" rows="6"></textarea>
+                        </div>
+                        <input class="w3-btn w3-white w3-border" type="submit">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <footer></footer>
+        <script>
+            function showTab(id) {
+                let i;
+                let x = document.getElementsByClassName("tab");
+                for (i = 0; i < x.length; i++) {
+                    x[i].style.display = "none";
+                }
+                document.getElementById(id).style.display = "block";
+            }
+
+            function showModal(first) {
+                if(first == true) {
+                    document.getElementById('id01').style.display='block';
+                }
+            }
+
+
+        </script>
+    </body>
+</html>
