@@ -1,0 +1,33 @@
+version: '3'
+services:
+  #
+  # Agents
+  #
+  agent1:
+    image: indy-agentjs
+    command: 'bash -c ''npm start'''
+    environment:
+      - PORT=3000
+      - WALLET_NAME=wallet_3000
+      - PUBLIC_DID_ENDPOINT=${DOCKERHOST}:3000
+      - DOCKERHOST=${DOCKERHOST}
+      - RUST_LOG=${RUST_LOG}
+      - TEST_POOL_IP=${DOCKERHOST} 
+    ports:
+      - 3000:3000
+
+  #
+  # 
+  agent2:
+    image: indy-agentjs
+    command: 'bash -c ''npm start'''
+    environment:
+      - PORT=3001
+      - WALLET_NAME=wallet_3001
+      - PUBLIC_DID_ENDPOINT=${DOCKERHOST}:3001
+      - DOCKERHOST=${DOCKERHOST}
+      - RUST_LOG=${RUST_LOG}
+      - TEST_POOL_IP=${DOCKERHOST} 
+    ports:
+      - 3001:3001
+      
