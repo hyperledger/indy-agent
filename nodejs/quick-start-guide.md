@@ -2,7 +2,9 @@
 
 If you you want to run this code locally, you can follow the [with docker](running-locally-with-docker) or [without docker](running-locally-without-docker) instructions.
 
-If you are interested in contributing to the development of this agent implementation, fork the Indy Agent repo ([git clone https:/github.com/hyperledger/indy-agent.git](git clone https:/github.com/hyperledger/indy-agent.git)) and then in the instructions below, clone your forked version of the repo vs. the hyperledger version. Then use pull requests to submit your code contributions.
+If you are planning to contribute to the development of this agent implementation, fork the Indy Agent repo ([git clone https:/github.com/hyperledger/indy-agent.git](git clone https:/github.com/hyperledger/indy-agent.git)) and then in the instructions below, clone your forked version of the repo vs. the hyperledger version. Then use pull requests to submit your code contributions.
+
+These instructions assume you have git installed, docker if you are going to use it, and you are familiar with using a shell/terminal. On Windows, as long as you are using the git-bash shell or the Windows Subsystem for Linux as your shell, you should be fine.
 
 # Running locally WITH Docker
 
@@ -19,7 +21,9 @@ If you are interested in contributing to the development of this agent implement
 
 The next time you have to start the network and agents run the `./manage start` command in each cloned repo - von-network first, then indy-agent/nodejs.
 
-Both versions of the `./manage` script have multiple sub-commands. Run just `./manage` to get help on the sub-commands.  The "rm" commands are useful for restarting from scratch, including for von-network, deleting the Indy Network ledger (e.g. reverting to just having a Steward on the ledger). 
+If you change the nodejs code, you must run the `./manage build` command, but it will be pretty quick as the only step to be repeated is the copying of the nodejs code into the container.  If the `package.json` file changes, the build will take longer to run as the `npm install` step must be run.
+
+Both versions of the `./manage` script have other sub-commands - run `./manage` (no arguments) to see the list.  The "rm" commands are useful for restarting from scratch, including for von-network, deleting the Indy Network ledger (e.g. reverting to just having a Steward on the ledger), and for the nodejs agents to delete their wallets. If you delete the Indy Network ledger, you *MUST* delete the nodejs agent wallets. 
 
 # Running locally WITHOUT Docker
 
