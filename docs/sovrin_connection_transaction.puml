@@ -1,0 +1,66 @@
+@startuml
+
+actor Alice as A
+participant "Alice's\nAgent" as AAg
+participant "Bob's\nAgent" as BAg
+actor Bob as B
+
+'Connection Offer
+A -> AAg: Initiate connection transaction
+activate AAg
+AAg -> AAg: Create connection offer nonce
+AAg -> AAg: Create connection offer message
+AAg -->> BAg: Send connection offer message
+note right
+How the connection offer message is provided to the agent
+depends on the scenario in which the connection offer is used.
+You may use a QR code that relays the information, you may use a
+text message to relay the information, or a myriad other ways
+to relay the message.
+
+Eventually, the connection offer message needs to be anon-encrypted
+with the Endpoint DID, Base64 encoded as a string, and sent to the agent’s endpoint.
+Whatever mechanism is processing the QR code, text message, etc.
+needs to transform the message and send it to the endpoint.
+A mobile app, which would be a slim agent for this express purpose of
+relaying messages to a cloud/edge agent, might be a way to process a connection offer.
+end note
+deactivate AAg
+activate BAg
+BAg -> BAg: Store connection offer message\nand wait for user interaction
+B -> BAg: Accept connection offer
+
+'Connection Request
+BAg -> BAg: Create DID for connection offer
+BAg -> BAg: Create connection request nonce
+BAg -> BAg: Create connection request message
+BAg -->> AAg: Send connection request message
+deactivate BAg
+activate AAg
+AAg -> AAg: Identify offer nonce\nand associate to connection offer
+AAg -> AAg: Store connection request message\nand wait for user interaction
+A -> AAg: Accept connection request
+
+'Connection Response
+AAg -> AAg: Create DID and associate with\nBob's DID sent in connection request
+AAg -> AAg: Create connection response message
+AAg -> AAg: Anoncrypt connection response\nmessage with Bob's DID VerKey
+AAg -->> BAg: Send connection response message
+deactivate AAg
+activate BAg
+BAg -> BAg: Identify which DID managed\nby this agent to use to process message
+BAg -> BAg: Anondecrypt connection response message
+BAg -> BAg: Verify connection request nonce\nhas not been previously consumed
+BAg -> BAg: Associate Alice's DID to Bob's DID which was\nsent to Alice with the connection request nonce
+
+'Connection Acknowledgement'
+BAg -> BAg: Create connection acknowledgement message
+BAg -> BAg: Authcrypt acknowledgement message
+BAg -->> AAg: Send connection acknowledgement message
+deactivate BAg
+activate AAg
+AAg -> AAg: Identify which DID managed\nby this agent to use to process message
+AAg -> AAg: Authdecrypt connection acknowledgement message
+deactivate AAg
+
+@enduml
