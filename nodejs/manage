@@ -7,9 +7,9 @@ set -e
 SCRIPT_HOME="$( cd "$( dirname "$0" )" && pwd )"
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-indy-agentjs}"
 
+# These can optionally be set outside the script, but defaults are here and should work
 export RUST_LOG=${RUST_LOG:-trace}
-
-export TEST_POOL_IP=${TEST_POOL_IP:-DOCKERHOST}
+export TEST_POOL_IP=${TEST_POOL_IP:-${DOCKERHOST}}
 
 # =================================================================================================================
 # Usage:
@@ -76,20 +76,24 @@ case "$1" in
       docker-compose up ${SVCS}
     ;;
   open)
-      if which open > /dev/null ; then
+      if which open > /dev/null 2>&1 ; then
          OPEN=open
-      elif which xdg-open > /dev/null ; then
+      elif which xdg-open > /dev/null 2>&1 ; then
          OPEN=xdg-open
-      elif which gnome-open > /dev/null ; then
+      elif which gnome-open > /dev/null 2>&1 ; then
          OPEN=gnome-open
+      elif which explorer.exe > /dev/null 2>&1 ; then
+         # Windows weirdness - but it works
+         OPEN=explorer.exe
       else
          echo "Could not find a suitable tool to open your browser.\nYou will need to manually open 5 browser tabs for localhost:3000 through localhost:3004"
       fi
-      $OPEN http://localhost:3000
-      $OPEN http://localhost:3001
-      $OPEN http://localhost:3002
-      $OPEN http://localhost:3003
-      $OPEN http://localhost:3004
+
+      $OPEN http://localhost:3000 &
+      $OPEN http://localhost:3001 &
+      $OPEN http://localhost:3002 &
+      $OPEN http://localhost:3003 &
+      $OPEN http://localhost:3004 &
     ;;
   stop)
       docker-compose stop
