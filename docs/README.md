@@ -19,7 +19,7 @@ But for two reasons, a Mobile Edge Agent could be the only Agent needed by an Id
 * Since smartphones are not always online, a Cloud Agent can supplement the Mobile Edge Agent so that an Identity endpoint is always available.
 * If the endpoint for an Identity is it’s Edge Agent internet address for all relationships, the single endpoint creates a public point of correlation. If the Edge Agent is accessed through an Agency’s Cloud Agent, the endpoint appears to be identical to all of the Agency’s other users.
 
-### Enterprise Edge Agent
+### Institution Edge Agent
 An Institution Edge Agent (IEA) is comparable to a Mobile Edge Agent but used to manage the Identity of an Organization in an Institution environment. IEA is not a mobile app, but an app running in an institutional environment - e.g. a private or public cloud, and extends the stereotypical Edge Agent by having a messaging API for configuring the business rules of the IEA.
 
 As with any Edge Agent, it holds the private keys of the Organizational Identity. Where the typical Edge Agent goes to the user to ask how to respond to inputs from other agents, an IEA is configured to have access to a component that injects that “business knowledge” - potentially by connecting with the Edge Agent of user.  There are a number of suggestions for names for that component:
@@ -51,9 +51,9 @@ The Cloud Agent must be able to respond to the payload of the message and be abl
 * Messages from the Edge Agent for administrative purposes. These are used for things like configuring the Cloud Agent, backups, restores and so on.
 
 #### Cloud Agent Keys and Endpoints
-The Cloud and Edge Agents must have keypairs so that two Agents can auth-crypt (encrypt and sign) messages to one another. Based our core definition of the Cloud Agent being primarily for message transport, the Cloud Agent does not have keys for accessing the Application Layer content of messages - only the Edge Agents have those keys.
+The Cloud and Edge Agents must have keypairs so that two Agents can auth-crypt (encrypt and sign) messages to one another. Based on our core definition of the Cloud Agent being primarily for message transport, the Cloud Agent does not have keys for accessing the Application Layer content of messages - only the Edge Agents have those keys.
 
-Mobile Edge Agents will be definition have a non-persistent endpoint and the Cloud Agent must have a way to message the Mobile Agent Agent, including queuing messages when the Edge Agent is offline. <<<How does this happen in the mobile world?  The Edge Agent maintains the connection with the Cloud Agent?>>>
+Mobile Edge Agents will by definition have a non-persistent endpoint and the Cloud Agent must have a way to message the Mobile Agent Agent, including queuing messages when the Edge Agent is offline. <<<How does this happen in the mobile world?  The Edge Agent maintains the connection with the Cloud Agent?>>>
 
 #### Other Cloud Agent Functions
 A Cloud Agent may have other functions beyond message transport. 
@@ -61,7 +61,7 @@ A Cloud Agent may have other functions beyond message transport.
 A key feature might be providing Wallet backup and restore functionality - holding an encrypted version of an Edge Agent’s wallet. The encryption and encryption key handling would be on the Agent side, but the encrypted data could be stored with the Cloud Agent. The encryption key handling would involve all of the DKMS mechanisms described in the [Evernym/DHS document](https://github.com/hyperledger/indy-sdk/blob/677a0439487a1b7ce64c2e62671ed3e0079cc11f/doc/design/005-dkms/DKMS%20Design%20and%20Architecture%20V3.md). So many details to be added…
 
 #### Variations
-In an Institution environment, a Cloud Agent is less important since the Edge Agent is likely a persistent end point using on-premise or Cloud hosting. It may still be useful to have a Cloud Agent to prevent correlation. Regardless, an IEA without a Cloud Agent should still look to the rest of the world like any other Agent, so it should have endpoint message handling like that of a Cloud Agent - e.g. expect to be sent anon-crypt messages with a transport instructions and an encrypted payload.
+In an Institution environment, a Cloud Agent is less important since the Edge Agent is likely a persistent end point using on-premise or Cloud hosting. It may still be useful to have a Cloud Agent to prevent correlation. Regardless, an IEA without a Cloud Agent should still look to the rest of the world like any other Agent, so it should have endpoint message handling like that of a Cloud Agent - e.g. expect to be sent [Base64](https://tools.ietf.org/html/rfc4648) encoded anon-encrypted messages via a transport with an id, message type, and appropriate message as the payload.
 
 ### Hubs
 A Hub is much like a Cloud Agent, but rather than focusing only on messaging (transport) as defined above for a Cloud Agent, the Hub also stores and shares data (potentially including Verifiable Credentials), on behalf of its owner. All of the data held by the Hub is en/decrypted by the Edge Agent, so it is the data that moves between the Edge and Hub, and not keys.  The Hub storage can (kind of) be thought of as a remote version of a Wallet without the keys, but is intended to hold more than just the Verifiable Credentials of an Edge Agent wallet. The idea is that the user can push lots of, for example, app-related data to the Hub, and a Service would be granted permission by the Owner to directly access the data without having to go to the Edge Agent. For example, a Hub-centric music service would store the owner’s config information and playlists on the Hub, and the Service would fetch the data from the Hub on use instead of storing it on it’s own servers.
@@ -77,7 +77,7 @@ The point in the process after the transport mechanism has delivered the payload
 * [Base64](https://tools.ietf.org/html/rfc4648) decode the string
 * Anon-decrypt the bytes
 
-In order to anon encrypt/decrypt the payload, the endpoint (transport) mechanism MUST use a well known DID/VerKey associated with that endpoint called an Endpoint DID. No matter what kind of transport is used, the Endpoint DID should be used to package/unpackage the payload through/from the transport by following the steps outlined above.
+In order to anon encrypt/decrypt the payload, the endpoint (transport) mechanism MUST use a well known DID/VerKey associated with that endpoint called an Endpoint DID. The phrase "well known" conveys that the agents could either lookup the Endpoint DID on the ledger, or through some means share/configure the Endpoint DIDs between two agent implementations out of band. Either way, both agent endpoints need to "know" the Endpoint DID details in order to send messages back and forth. No matter what kind of transport is used, the Endpoint DID should be used to package/unpackage the payload through/from the transport by following the steps outlined above.
 
 ### Base/Core Message Structure
 To maintain consistency of message handling, the following defines the structure of every message before it is packaged and sent over the transport layer or after it is received through the transport layer and unpackaged:
