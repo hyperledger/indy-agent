@@ -13,7 +13,7 @@ docker run -itd -p 9701-9708:9701-9708 indy_pool
 * Then run the following commands to start the agent
 
 ```
-git clone https:/github.com/hyperledger/indy-agent.git
+git clone https://github.com/hyperledger/indy-agent.git
 cd indy-agent/nodejs
 npm install # This will fail if libindy is not accessible
 npm start # Starts the node.js express server
@@ -36,3 +36,4 @@ GENDER=F
 ```
 
 Where PUBLIC_DID_ENDPOINT refers to the host and port your agent is running at, and the TEST_POOL_IP refers to the ip address of the running ledger.
+
