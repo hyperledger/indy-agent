@@ -1,0 +1,7 @@
+[config]
+wallet_path = "wallets"
+clear_wallets = false
+
+tests = [
+    "core"
+]
