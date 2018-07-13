@@ -78,7 +78,7 @@ WORKDIR indy-agent/nodejs
 COPY package.json .
 # use the newest indy-sdk package
 RUN npm install --save $HOME/indy-sdk/wrappers/nodejs
-#RUN npm install
+RUN npm install
 
 # Copy rest of the app
 COPY . .

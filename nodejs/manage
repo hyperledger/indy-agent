@@ -11,7 +11,6 @@ export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-indy-agentjs}"
 # These can optionally be set outside the script, but defaults are here and should work
 export RUST_LOG=${RUST_LOG:-trace}
 export TEST_POOL_IP=${TEST_POOL_IP:-${DOCKERHOST}}
-echo "TEST_POOL_IP: $TEST_POOL_IP"
 
 # =================================================================================================================
 # Usage:
@@ -87,6 +86,7 @@ case "$1" in
         shift
         SVCS="$@"
       fi
+      echo "connect agent with pool on IP: $TEST_POOL_IP"
       docker-compose up ${SVCS}
     ;;
   open)
