@@ -3,7 +3,7 @@
 const config = {
 
     // Change to your endpoint did's endpoint
-    endpointDidEndpoint: process.env.PUBLIC_DID_ENDPOINT,
+    endpointDidEndpoint: process.env.PUBLIC_DID_ENDPOINT || '127.0.0.1:3000',
 
     // IP Address of the running ledger
     testPoolIp: process.env.TEST_POOL_IP || '127.0.0.1',
