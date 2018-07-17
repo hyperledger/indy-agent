@@ -1,4 +1,5 @@
 [config]
+wallet_name = "test-agent"
 wallet_path = "wallets"
 clear_wallets = false
 

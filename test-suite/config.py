@@ -10,6 +10,7 @@ class InvalidConfigurationException(Exception):
     """
     pass
 
+
 class StoreDictKeyPair(argparse.Action):
      def __init__(self, option_strings, dest, nargs=None, **kwargs):
          self._nargs = nargs
@@ -20,6 +21,10 @@ class StoreDictKeyPair(argparse.Action):
              k,v = kv.split("=")
              my_dict[k] = v
          setattr(namespace, self.dest, my_dict)
+
+
+# TODO: Make adding new configuration options less repetetive. There is a lot of
+# duplicate code here.
 
 class Config():
     """ Configuration class used to store and update configuration information.
@@ -49,6 +54,7 @@ class Config():
         return conf
 
     def __init__(self):
+        self.wallet_name: Optional[str] = None
         self.wallet_path: Optional[str] = None
         self.clear_wallets: Optional[Bool] = None
         self.tests: Optional[List[str]] = None
@@ -61,6 +67,9 @@ class Config():
 
         if 'config' not in config_dict:
             raise InvalidConfigurationException()
+
+        if 'wallet_name' in config_dict['config']:
+            self.wallet_name = config_dict['config']['wallet_name']
         
         if 'wallet_path' in config_dict['config']:
             self.wallet_path = config_dict['config']['wallet_path']
@@ -79,6 +88,9 @@ class Config():
             load_config
         """
 
+        if 'wallet_name' in args:
+            self.wallet_name = args['wallet_name']
+
         if 'wallet_path' in args:
             self.wallet_path = args['wallet_path']
 
@@ -90,16 +102,19 @@ class Config():
         else:
             self.tests = ['core']
 
+
 if __name__ == '__main__':
+
     DEFAULT_CONFIG_PATH = 'config.toml'
 
+    print("TESTING CONFIGURATION")
     parser = Config.get_arg_parser()
     config = Config.from_file(DEFAULT_CONFIG_PATH)
     print(config.wallet_path, config.clear_wallets, config.tests)
 
     args = parser.parse_args()
     print(args)
-    if args is not None:
+    if args.config is not None:
         config.update_config_with_args_dict(args.config)
 
     print(config.wallet_path, config.clear_wallets, config.tests)
