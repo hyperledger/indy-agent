@@ -54,6 +54,8 @@ class Config():
         return conf
 
     def __init__(self):
+        self.host: Optional[str] = None
+        self.port: Optional[int] = None
         self.wallet_name: Optional[str] = None
         self.wallet_path: Optional[str] = None
         self.clear_wallets: Optional[Bool] = None
@@ -68,9 +70,19 @@ class Config():
         if 'config' not in config_dict:
             raise InvalidConfigurationException()
 
+        if 'host' in config_dict['config']:
+            self.host = config_dict['config']['host']
+        else:
+            self.host = 'localhost'
+
+        if 'port' in config_dict['config']:
+            self.port = config_dict['config']['port']
+        else:
+            self.port = 3000
+
         if 'wallet_name' in config_dict['config']:
             self.wallet_name = config_dict['config']['wallet_name']
-        
+
         if 'wallet_path' in config_dict['config']:
             self.wallet_path = config_dict['config']['wallet_path']
 
@@ -87,6 +99,16 @@ class Config():
             This typically called after loading a configuration file using
             load_config
         """
+
+        if 'host' in args:
+            self.host = args['host']
+        else:
+            self.host = 'localhost'
+
+        if 'port' in args:
+            self.port = args['port']
+        else:
+            self.port = 3000
 
         if 'wallet_name' in args:
             self.wallet_name = args['wallet_name']

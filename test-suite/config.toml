@@ -1,8 +1,9 @@
 [config]
+host = "localhost"
+port = 3000
 wallet_name = "test-agent"
 wallet_path = "wallets"
 clear_wallets = false
-
 tests = [
-    "core"
+    "hello_world"
 ]
