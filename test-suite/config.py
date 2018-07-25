@@ -1,30 +1,17 @@
 """ Module for storing and updating configuration.
 """
 
-from typing import Optional
+import typing
+from typing import Optional, Dict, Any
 import toml
 import argparse
+import os
 
 class InvalidConfigurationException(Exception):
     """ Exception raise on absent required configuration value
     """
     pass
 
-
-class StoreDictKeyPair(argparse.Action):
-     def __init__(self, option_strings, dest, nargs=None, **kwargs):
-         self._nargs = nargs
-         super(StoreDictKeyPair, self).__init__(option_strings, dest, nargs=nargs, **kwargs)
-     def __call__(self, parser, namespace, values, option_string=None):
-         my_dict = {}
-         for kv in values:
-             k,v = kv.split("=")
-             my_dict[k] = v
-         setattr(namespace, self.dest, my_dict)
-
-
-# TODO: Make adding new configuration options less repetetive. There is a lot of
-# duplicate code here.
 
 class Config():
     """ Configuration class used to store and update configuration information.
@@ -38,91 +25,75 @@ class Config():
             description='Run Indy Agent Test Suite'
         )
         parser.add_argument(
-            '--config',
-            metavar="KEY=VAL",
-            dest='config',
-            action=StoreDictKeyPair,
+            '-s',
+            '--source',
+            metavar='ADDR',
+            type=str,
+            help='Set the test agent\'s source addres to ADDR'
+        )
+        parser.add_argument(
+            '-p',
+            '--source-port',
+            metavar='PORT',
+            type=int,
+            help='Set the port that the test agent will listen on to PORT'
+        )
+        parser.add_argument(
+            '-wn',
+            '--wallet-name',
+            metavar='WALLET_NAME',
+            type=str,
+            help='Set the name used for the test agent\'s wallet to WALLET_NAME'
+        )
+        parser.add_argument(
+            '-wp',
+            '--wallet-path',
+            metavar='WALLET_PATH',
+            type=str,
+            help='Set the directory that the test agent\'s wallet will be stored in to WALLET_PATH'
+        )
+        parser.add_argument(
+            '-n',
+            '--no-clobber',
+            dest='clear_wallets',
+            action='store_false',
+            help='Preserve wallets used for testing. Default behavior is to delete all wallets created by tests.'
+        )
+        parser.add_argument(
+            '--tests',
+            metavar='TEST',
+            type=str,
             nargs='+',
-            help='A space separated list of Key-Value pairs.'
+            help='Space separated list of test names to run. Each test string is the module name for the test.'
         )
         return parser
 
     @staticmethod
-    def from_file(config_path):
+    def from_file(config_path: str):
         conf = Config()
-        conf.load_config(config_path)
+        options = toml.load(config_path)
+        conf.update(options)
         return conf
 
     def __init__(self):
-        self.host: Optional[str] = None
-        self.port: Optional[int] = None
-        self.wallet_name: Optional[str] = None
-        self.wallet_path: Optional[str] = None
-        self.clear_wallets: Optional[Bool] = None
-        self.tests: Optional[List[str]] = None
+        self.host: str = 'localhost'
+        self.port: int = 3000
+        self.wallet_name: str = 'testing'
+        self.wallet_path: str = os.path.dirname(os.path.realpath(__file__)) + 'test_wallets'
+        self.clear_wallets: bool = True
+        self.tests: List[str] = ['core']
 
-    def load_config(self, config_path):
-        """ Load configuration from a toml file with a given path.
+    def update(self, options: Dict[str, Any]):
+        """ Load configuration from the options dictionary.
         """
 
-        config_dict = toml.load(config_path)
+        for var in self.__dict__.keys():
+            if var in options and options[var] is not None:
+                if type(options[var]) is not type(self.__dict__[var]):
+                    err_msg = 'Configuration option {} is an invalid type'.format(var)
+                    raise InvalidConfigurationException(err_msg)
 
-        if 'config' not in config_dict:
-            raise InvalidConfigurationException()
-
-        if 'host' in config_dict['config']:
-            self.host = config_dict['config']['host']
-        else:
-            self.host = 'localhost'
-
-        if 'port' in config_dict['config']:
-            self.port = config_dict['config']['port']
-        else:
-            self.port = 3000
-
-        if 'wallet_name' in config_dict['config']:
-            self.wallet_name = config_dict['config']['wallet_name']
-
-        if 'wallet_path' in config_dict['config']:
-            self.wallet_path = config_dict['config']['wallet_path']
-
-        if 'clear_wallets' in config_dict['config']:
-            self.clear_wallets = config_dict['config']['clear_wallets']
-
-        if 'tests' in config_dict['config']:
-            self.tests = config_dict['config']['tests']
-        else:
-            self.tests = ['core']
-
-    def update_config_with_args_dict(self, args):
-        """ Update the configuration using command line arguments.
-            This typically called after loading a configuration file using
-            load_config
-        """
-
-        if 'host' in args:
-            self.host = args['host']
-        else:
-            self.host = 'localhost'
-
-        if 'port' in args:
-            self.port = args['port']
-        else:
-            self.port = 3000
-
-        if 'wallet_name' in args:
-            self.wallet_name = args['wallet_name']
-
-        if 'wallet_path' in args:
-            self.wallet_path = args['wallet_path']
-
-        if 'clear_wallets' in args:
-            self.clear_wallets = args['clear_wallets']
-
-        if 'tests' in args:
-            self.tests = args['tests']
-        else:
-            self.tests = ['core']
+                self.__dict__[var] = options[var]
 
 
 if __name__ == '__main__':
@@ -136,7 +107,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     print(args)
-    if args.config is not None:
-        config.update_config_with_args_dict(args.config)
+    if args:
+        config.update(vars(args))
 
     print(config.wallet_path, config.clear_wallets, config.tests)

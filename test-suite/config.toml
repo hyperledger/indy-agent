@@ -1,9 +1,22 @@
-[config]
+## Test Agent Configuration ##
+
+# Host specifies the address the agent will listen on for messages.
 host = "localhost"
+
+# port is the port on which the test agent will listen.
 port = 3000
-wallet_name = "test-agent"
+
+# The default name used for wallets created by the test agent.
+wallet_name = 'testing'
+
+# The path where wallets will be stored during testing.
 wallet_path = "wallets"
-clear_wallets = false
+
+# Specify whether wallets should be deleted after testing.
+clear_wallets = true
+
+# A list of tests to be run but the test agent.
+# Each string in this list is the name of the module containing the test.
 tests = [
     "hello_world"
 ]
