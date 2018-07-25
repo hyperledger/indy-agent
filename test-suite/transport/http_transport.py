@@ -19,7 +19,8 @@ class HTTPTransport(BaseTransport):
         RUNNER = web.AppRunner(APP)
         await RUNNER.setup()
         SERVER = web.TCPSite(RUNNER, self.config.host, self.config.port)
-        return SERVER.start()
+        print('===== Starting Server on: http://{}:{} ====='.format(self.config.host, self.config.port))
+        await SERVER.start()
 
     async def send(self, dest: str, body: bytes):
         """ Send a message.
