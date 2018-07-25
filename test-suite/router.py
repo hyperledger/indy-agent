@@ -3,9 +3,15 @@
 
 from typing import Callable
 from model import Message, Agent
-from . import BaseRouter, RouteAlreadyRegisteredException
 
-class SimpleRouter(BaseRouter):
+class RouteAlreadyRegisteredException(Exception):
+    """ Route Already Registered Exception.
+
+        Raised by router.register
+    """
+    pass
+
+class Router():
     """ Simple router for handling Sovrin Messages.
 
         Uses python dictionary to correlate a message type to a callback.
