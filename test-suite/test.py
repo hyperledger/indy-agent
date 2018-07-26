@@ -10,13 +10,12 @@
 
 import asyncio
 import os
-import sys
 import json
-import uuid
-from aiohttp import web
+
 
 from indy import wallet, did, crypto
 
+import tests.hello_world
 from transport.http_transport import HTTPTransport
 import serializer.json_serializer as Serializer
 from config import Config
@@ -75,21 +74,6 @@ async def run_tests(config, msg_q):
 
     # TODO: Clean up
 
-
-    #import sys
-    #import unittest
-
-    #sys.path[0:0] = ['.', '..', '../..']
-
-    #SUITE = unittest.TestLoader().loadTestsFromNames(
-    #    [
-    #        'test_dataracebench',
-    #        # 'test_instrumenter',
-    #        # 'test_basic'
-    #    ]
-    #)
-    #TESTRESULT = unittest.TextTestRunner(verbosity=1).run(SUITE)
-    #sys.exit(0 if TESTRESULT.wasSuccessful() else 1)
 
     #for test_module in config.tests:
 

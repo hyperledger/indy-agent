@@ -18,5 +18,5 @@ clear_wallets = true
 # A list of tests to be run but the test agent.
 # Each string in this list is the name of the module containing the test.
 tests = [
-    "hello_world"
+    "hello_world.HelloWorldTest"
 ]
