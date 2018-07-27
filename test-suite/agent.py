@@ -1,28 +1,21 @@
 """ indy-agent python implementation
 """
 
-# Pylint struggles to find packages inside of a virtual environments;
-# pylint: disable=import-error
-
-# Pylint also dislikes the name indy-agent but this follows conventions already
-# established in indy projects.
-# pylint: disable=invalid-name
-
 import asyncio
 import os
 import json
 
-
 from indy import wallet, did, crypto
-
-import tests.hello_world
+from router import Router
 from transport.http_transport import HTTPTransport
 import serializer.json_serializer as Serializer
 from config import Config
 
+# Module Routes
+from modules.testing import register_routes as testing_routes
+
 
 # Configuration
-
 DEFAULT_CONFIG_PATH = 'config.toml'
 
 parser = Config.get_arg_parser()
@@ -32,13 +25,12 @@ args = parser.parse_args()
 if args:
     config.update(vars(args))
 
+# Transport and handling
 MSG_Q = asyncio.Queue()
 TRANSPORT = HTTPTransport(config, MSG_Q)
-# No router is needed for the test agent. (For now)
-#ROUTER = Router()
+ROUTER = Router()
 
-# A router would be passed in here
-async def run_tests(config, msg_q):
+async def message_process(config, msg_q, transport, router):
     """
     """
 
@@ -70,13 +62,19 @@ async def run_tests(config, msg_q):
     # The verkey is used to retrieve the sigkey from the wallet when needed.
     config.transport_key = await crypto.create_key(config.wallet_handle, '{}')
 
-    # TODO: Run tests
+    # Register Routes
+    await testing_routes(router)
+    
+    while True:
+        msg_bytes = await msg_q.get()
+        print('Got message: {}'.format(msg_bytes))
+        try:
+            msg = Serializer.unpack(msg_bytes)
+        except Exception as e:
+            print('Failed to unpack message: {}\n\nError: {}'.format(msg_bytes, e))
+            continue
 
-    # TODO: Clean up
-
-
-    #for test_module in config.tests:
-
+        await router.route(msg, config=config, message_queue=msg_q, transport=transport)
 
     #    encrypted_msg_bytes = await msg_receiver.recv()
 
@@ -90,18 +88,10 @@ async def run_tests(config, msg_q):
     #        print('Could not decrypt message: {}\nError: {}'.format(encrypted_msg_bytes, e))
     #        continue
 
-    #    try:
-    #        msg = Serializer.unpack(msg_bytes)
-    #    except Exception as e:
-    #        print('Failed to unpack message: {}\n\nError: {}'.format(msg_bytes, e))
-    #        continue
-
-    #    await msg_router.route(msg, agent['agent'])
-
 LOOP = asyncio.get_event_loop()
 try:
     LOOP.create_task(TRANSPORT.start_server())
-    LOOP.create_task(run_tests(config, MSG_Q))
+    LOOP.create_task(message_process(config, MSG_Q, TRANSPORT, ROUTER))
     LOOP.run_forever()
 except KeyboardInterrupt:
     print("exiting")

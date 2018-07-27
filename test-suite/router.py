@@ -1,8 +1,7 @@
 """ Simple router for handling Sovrin Messages.
 """
-
-from typing import Callable
-from model import Message, Agent
+from typing import Callable, Dict, Any
+from message import Message
 
 class RouteAlreadyRegisteredException(Exception):
     """ Route Already Registered Exception.
@@ -19,7 +18,7 @@ class Router():
     def __init__(self):
         self.routes = {}
 
-    async def register(self, msg_type: str, handler: Callable[[bytes, Agent], None]):
+    async def register(self, msg_type: str, handler: Callable[[bytes, Dict[str, Any]], None]):
         """ Register a callback for messages with a given type.
         """
         if msg_type in self.routes.keys():
@@ -27,8 +26,9 @@ class Router():
 
         self.routes[msg_type] = handler
 
-    async def route(self, msg: Message, agent: Agent):
+    async def route(self, msg: Message, **kwargs: Any):
         """ Route a message to it's registered callback.
         """
         if msg.type in self.routes.keys():
-            return await self.routes[msg.type](msg, agent)
+            return await self.routes[msg.type](msg, **kwargs)
+        print('No route for message, dropping')

@@ -6,6 +6,9 @@ host = "localhost"
 # port is the port on which the test agent will listen.
 port = 3000
 
+# url of the tested agent
+tested_agent = 'http://localhost:3001/indy'
+
 # The default name used for wallets created by the test agent.
 wallet_name = 'testing'
 

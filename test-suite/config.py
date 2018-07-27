@@ -27,6 +27,7 @@ class Config():
         parser.add_argument(
             '-s',
             '--source',
+            dest='host',
             metavar='ADDR',
             type=str,
             help='Set the test agent\'s source addres to ADDR'
@@ -34,13 +35,23 @@ class Config():
         parser.add_argument(
             '-p',
             '--source-port',
+            dest='port',
             metavar='PORT',
             type=int,
             help='Set the port that the test agent will listen on to PORT'
         )
         parser.add_argument(
+            '-t',
+            '--tested-agent',
+            metavar='URL',
+            dest='tested_agent',
+            type=str,
+            help='The url of the tested agent'
+        )
+        parser.add_argument(
             '-wn',
             '--wallet-name',
+            dest='wallet_name',
             metavar='WALLET_NAME',
             type=str,
             help='Set the name used for the test agent\'s wallet to WALLET_NAME'
@@ -49,6 +60,7 @@ class Config():
             '-wp',
             '--wallet-path',
             metavar='WALLET_PATH',
+            dest='wallet_path',
             type=str,
             help='Set the directory that the test agent\'s wallet will be stored in to WALLET_PATH'
         )
@@ -78,6 +90,7 @@ class Config():
     def __init__(self):
         self.host: str = 'localhost'
         self.port: int = 3000
+        self.tested_agent: str = 'http://localhost:3001/indy'
         self.wallet_name: str = 'testing'
         self.wallet_path: str = os.path.dirname(os.path.realpath(__file__)) + 'test_wallets'
         self.clear_wallets: bool = True
