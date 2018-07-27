@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from message import Message
 from router import Router
-import serializer.json_serializer as Serializer
+from serializer import JSONSerializer as Serializer
 
 class MESSAGE_TYPES:
     SEND_MESSAGE = 'urn:ssi:message:sovrin.org/testing/1.0/send_message_command'

@@ -10,7 +10,7 @@ import aiohttp
 from aiohttp import web
 from indy import crypto, did, pairwise
 from model import Message
-import serializer.json_serializer as Serializer
+from serializer import JSONSerializer as Serializer
 from message_types import CONN, UI
 
 async def send_offer(msg, agent):

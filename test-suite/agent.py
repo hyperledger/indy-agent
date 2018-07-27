@@ -8,7 +8,7 @@ import json
 from indy import wallet, did, crypto
 from router import Router
 from transport.http_transport import HTTPTransport
-import serializer.json_serializer as Serializer
+from serializer import JSONSerializer as Serializer
 from config import Config
 
 # Module Routes

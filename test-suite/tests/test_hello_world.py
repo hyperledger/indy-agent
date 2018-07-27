@@ -1,7 +1,7 @@
 import asyncio
 import pytest
 from modules.testing import SendMessageCommand
-import serializer.json_serializer as Serializer
+from serializer import JSONSerializer as Serializer
 from . import expect_message
 
 @pytest.mark.asyncio
