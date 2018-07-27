@@ -48,7 +48,10 @@ async def config():
     # The verkey is used to retrieve the sigkey from the wallet when needed.
     config.transport_key = await crypto.create_key(config.wallet_handle, '{}')
 
-    return config
+    yield config
+
+    # TODO:Clean up tasks
+    # delete/clear wallets used for testing
 
 @pytest.fixture(scope='session')
 def msg_q():

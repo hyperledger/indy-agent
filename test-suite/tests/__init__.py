@@ -16,8 +16,6 @@ async def expect_message(message_queue: asyncio.Queue, timeout: int):
         ],
         return_when=asyncio.FIRST_COMPLETED
     )
-    print(finished)
-    print(sleep_task)
     if get_message_task in finished:
         return get_message_task.result()
 

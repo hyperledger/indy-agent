@@ -14,7 +14,6 @@ from config import Config
 # Module Routes
 from modules.testing import register_routes as testing_routes
 
-
 # Configuration
 DEFAULT_CONFIG_PATH = 'config.toml'
 
