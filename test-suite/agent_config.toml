@@ -4,16 +4,16 @@
 host = "localhost"
 
 # port is the port on which the test agent will listen.
-port = 3000
+port = 3001
 
 # url of the tested agent
 tested_agent = 'http://localhost:3001/indy'
 
 # The default name used for wallets created by the test agent.
-wallet_name = 'testing'
+wallet_name = 'tested-agent'
 
 # The path where wallets will be stored during testing.
-wallet_path = "wallets"
+wallet_path = ".agent-wallets"
 
 # Specify whether wallets should be deleted after testing.
 clear_wallets = true
@@ -21,5 +21,5 @@ clear_wallets = true
 # A list of tests to be run but the test agent.
 # Each string in this list is the name of the module containing the test.
 tests = [
-    "hello_world.HelloWorldTest"
+    "hello_world"
 ]

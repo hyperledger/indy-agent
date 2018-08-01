@@ -92,7 +92,7 @@ class Config():
         self.port: int = 3000
         self.tested_agent: str = 'http://localhost:3001/indy'
         self.wallet_name: str = 'testing'
-        self.wallet_path: str = os.path.dirname(os.path.realpath(__file__)) + 'test_wallets'
+        self.wallet_path: str = ''
         self.clear_wallets: bool = True
         self.tests: List[str] = ['core']
 
@@ -107,6 +107,12 @@ class Config():
                     raise InvalidConfigurationException(err_msg)
 
                 self.__dict__[var] = options[var]
+
+        self._wallet_path_post_process()
+
+    def _wallet_path_post_process(self):
+        if self.wallet_path is not None and self.wallet_path.strip()[0] is not '/':
+            self.wallet_path = os.getcwd() + '/' + self.wallet_path
 
 
 if __name__ == '__main__':

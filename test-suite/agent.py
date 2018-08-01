@@ -15,7 +15,7 @@ from config import Config
 from modules.testing import register_routes as testing_routes
 
 # Configuration
-DEFAULT_CONFIG_PATH = 'config.toml'
+DEFAULT_CONFIG_PATH = 'agent_config.toml'
 
 parser = Config.get_arg_parser()
 config = Config.from_file(DEFAULT_CONFIG_PATH)
@@ -30,7 +30,7 @@ TRANSPORT = HTTPTransport(config, MSG_Q)
 ROUTER = Router()
 
 async def message_process(config, msg_q, transport, router):
-    """
+    """ 
     """
 
     # Initialization steps
@@ -38,10 +38,12 @@ async def message_process(config, msg_q, transport, router):
     print('Creating wallet: {}'.format(config.wallet_name))
     try:
         await wallet.create_wallet(
-            'pool1',
-            config.wallet_name,
-            None,
-            None,
+            json.dumps({
+                'id': config.wallet_name,
+                'storage_config': {
+                    'path': config.wallet_path
+                }
+            }),
             json.dumps({'key': 'test-agent'})
         )
     except:
@@ -50,20 +52,20 @@ async def message_process(config, msg_q, transport, router):
     # -- Open a wallet
     print('Opening wallet: {}'.format(config.wallet_name))
     config.wallet_handle = await wallet.open_wallet(
-        config.wallet_name,
-        None,
+        json.dumps({
+            'id': config.wallet_name,
+            'storage_config': {
+                'path': config.wallet_path
+            }
+        }),
         json.dumps({'key': 'test-agent'})
     )
 
-    # -- Create transport keys
-    # create_key will create a verkey, sigkey keypair, store the sigkey in the wallet
-    # and return the verkey.
-    # The verkey is used to retrieve the sigkey from the wallet when needed.
-    config.transport_key = await crypto.create_key(config.wallet_handle, '{}')
+    await TRANSPORT.create_transport_key(config.wallet_handle)
 
     # Register Routes
     await testing_routes(router)
-    
+
     while True:
         msg_bytes = await msg_q.get()
         print('Got message: {}'.format(msg_bytes))
@@ -87,6 +89,20 @@ async def message_process(config, msg_q, transport, router):
     #        print('Could not decrypt message: {}\nError: {}'.format(encrypted_msg_bytes, e))
     #        continue
 
+async def cleanup(config):
+    await wallet.close_wallet(config.wallet_handle)
+    await wallet.delete_wallet(
+        json.dumps({
+            'id': config.wallet_name,
+            'storage_config': {
+                'path': config.wallet_path
+            }
+        }),
+        json.dumps({'key': 'test-agent'})
+    )
+
+    os.rmdir(config.wallet_path)
+
 LOOP = asyncio.get_event_loop()
 try:
     LOOP.create_task(TRANSPORT.start_server())
@@ -94,3 +110,5 @@ try:
     LOOP.run_forever()
 except KeyboardInterrupt:
     print("exiting")
+
+LOOP.run_until_complete(cleanup(config))

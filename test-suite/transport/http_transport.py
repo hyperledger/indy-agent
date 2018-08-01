@@ -1,3 +1,5 @@
+""" HTTP Transport
+"""
 import asyncio
 from aiohttp import web, ClientSession
 
@@ -5,6 +7,8 @@ from config import Config
 from . import BaseTransport
 
 class HTTPTransport(BaseTransport):
+    """ HTTP Transport
+    """
     def __init__(self, config: Config, message_queue: asyncio.Queue):
         super().__init__(config, message_queue)
 

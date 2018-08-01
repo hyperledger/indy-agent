@@ -35,14 +35,11 @@ class JSONSerializer(BaseSerializer):
             Returns a dictionary otherwise.
         """
         def as_message(dct):
-            if Message.valid(dct):
-                return Message(dct)
-
-            return dct
+            return Message(dct)
 
         return json.loads(dump, object_hook=as_message)
 
     def pack(msg: Message) -> bytes:
         """ Serialize from Message to json string or from dictionary to json string.
         """
-        return json.dumps(msg.flatten())
+        return json.dumps(msg.to_dict())
