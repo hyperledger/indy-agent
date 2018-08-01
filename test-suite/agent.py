@@ -90,18 +90,19 @@ async def message_process(config, msg_q, transport, router):
     #        continue
 
 async def cleanup(config):
-    await wallet.close_wallet(config.wallet_handle)
-    await wallet.delete_wallet(
-        json.dumps({
-            'id': config.wallet_name,
-            'storage_config': {
-                'path': config.wallet_path
-            }
-        }),
-        json.dumps({'key': 'test-agent'})
-    )
+    if config.clear_wallets:
+        await wallet.close_wallet(config.wallet_handle)
+        await wallet.delete_wallet(
+            json.dumps({
+                'id': config.wallet_name,
+                'storage_config': {
+                    'path': config.wallet_path
+                }
+            }),
+            json.dumps({'key': 'test-agent'})
+        )
 
-    os.rmdir(config.wallet_path)
+        os.rmdir(config.wallet_path)
 
 LOOP = asyncio.get_event_loop()
 try:
