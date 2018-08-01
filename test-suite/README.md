@@ -63,7 +63,7 @@ This will execute the tests contained in the folders listed in the `tests` confi
 # A list of tests to be run by the test agent.
 tests = [
     "hello_world",
-	"core",
+    "core"
 ]
 ```
 
