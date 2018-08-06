@@ -27,6 +27,9 @@ class BaseTransport(object):
         """
         pass
 
+    async def recv(self):
+        return await self.message_queue.get()
+
     async def handle_message(self, msg: str):
         """ Push received message onto message queue.
         """

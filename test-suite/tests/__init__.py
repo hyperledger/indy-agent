@@ -4,10 +4,10 @@ import asyncio
 import pytest
 from typing import Callable
 
-from config import Config
+from transport import BaseTransport
 
-async def expect_message(message_queue: asyncio.Queue, timeout: int):
-    get_message_task = asyncio.ensure_future(message_queue.get())
+async def expect_message(transport: BaseTransport, timeout: int):
+    get_message_task = asyncio.ensure_future(transport.recv())
     sleep_task = asyncio.ensure_future(asyncio.sleep(timeout))
     finished, unfinished = await asyncio.wait(
         [

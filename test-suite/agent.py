@@ -25,11 +25,10 @@ if args:
     config.update(vars(args))
 
 # Transport and handling
-MSG_Q = asyncio.Queue()
-TRANSPORT = HTTPTransport(config, MSG_Q)
+TRANSPORT = HTTPTransport(config, asyncio.Queue())
 ROUTER = Router()
 
-async def message_process(config, msg_q, transport, router):
+async def message_process(config, transport, router):
     """ 
     """
 
@@ -67,7 +66,7 @@ async def message_process(config, msg_q, transport, router):
     await testing_routes(router)
 
     while True:
-        msg_bytes = await msg_q.get()
+        msg_bytes = await transport.recv()
         print('Got message: {}'.format(msg_bytes))
         try:
             msg = Serializer.unpack(msg_bytes)
@@ -75,19 +74,7 @@ async def message_process(config, msg_q, transport, router):
             print('Failed to unpack message: {}\n\nError: {}'.format(msg_bytes, e))
             continue
 
-        await router.route(msg, config=config, message_queue=msg_q, transport=transport)
-
-    #    encrypted_msg_bytes = await msg_receiver.recv()
-
-    #    try:
-    #        decrypted_msg_bytes = await crypto.anon_decrypt(
-    #            agent.wallet_handle,
-    #            agent.endpoint_vk,
-    #            encrypted_msg_bytes
-    #        )
-    #    except Exception as e:
-    #        print('Could not decrypt message: {}\nError: {}'.format(encrypted_msg_bytes, e))
-    #        continue
+        await router.route(msg, config=config, transport=transport)
 
 async def cleanup(config):
     if config.clear_wallets:
@@ -107,7 +94,7 @@ async def cleanup(config):
 LOOP = asyncio.get_event_loop()
 try:
     LOOP.create_task(TRANSPORT.start_server())
-    LOOP.create_task(message_process(config, MSG_Q, TRANSPORT, ROUTER))
+    LOOP.create_task(message_process(config, TRANSPORT, ROUTER))
     LOOP.run_forever()
 except KeyboardInterrupt:
     print("exiting")

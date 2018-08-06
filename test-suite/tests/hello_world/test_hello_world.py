@@ -6,7 +6,7 @@ from serializer import JSONSerializer as Serializer
 from tests import expect_message
 
 @pytest.mark.asyncio
-async def test_got_hello_world(config, transport, msg_q):
+async def test_got_hello_world(config, transport):
     msg = Message({
         'type': TESTING_MESSAGE.SEND_MESSAGE,
         'to': 'http://localhost:3000/indy',
@@ -17,7 +17,7 @@ async def test_got_hello_world(config, transport, msg_q):
     })
 
     await transport.send(config.tested_agent, Serializer.pack(msg))
-    msg_bytes = await expect_message(msg_q, 5)
+    msg_bytes = await expect_message(transport, 5)
     msg = Serializer.unpack(msg_bytes)
 
     assert msg.type == 'hello_world'

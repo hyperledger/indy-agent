@@ -36,6 +36,13 @@ async def config():
     if args:
         config.update(vars(args))
 
+    yield config
+
+    # TODO: Cleanup?
+
+
+@pytest.fixture(scope='session')
+async def wallet_handle(config):
     # Initialization steps
     # -- Create wallet
     print('Creating wallet: {}'.format(config.wallet_name))
@@ -54,7 +61,7 @@ async def config():
 
     # -- Open a wallet
     print('Opening wallet: {}'.format(config.wallet_name))
-    config.wallet_handle = await wallet.open_wallet(
+    wallet_handle = await wallet.open_wallet(
         json.dumps({
             'id': config.wallet_name,
             'storage_config': {
@@ -64,11 +71,11 @@ async def config():
         json.dumps({'key': 'test-agent'})
     )
 
-    yield config
+    yield wallet_handle
 
     # Cleanup
     if config.clear_wallets:
-        await wallet.close_wallet(config.wallet_handle)
+        await wallet.close_wallet(wallet_handle)
         await wallet.delete_wallet(
             json.dumps({
                 'id': config.wallet_name,
@@ -83,20 +90,15 @@ async def config():
 
 
 @pytest.fixture(scope='session')
-def msg_q():
-    """ The message queue fixture.
-    """
-    return asyncio.Queue()
-
-@pytest.fixture(scope='session')
-async def transport(config, msg_q, event_loop):
+async def transport(config, wallet_handle, event_loop):
     """ Transport fixture.
 
         Initializes the transport layer.
     """
-    transport = HTTPTransport(config, msg_q)
+    MSG_Q = asyncio.Queue()
+    transport = HTTPTransport(config, MSG_Q)
 
-    await transport.create_transport_key(config.wallet_handle)
+    await transport.create_transport_key(wallet_handle)
 
     event_loop.create_task(transport.start_server())
     return transport
