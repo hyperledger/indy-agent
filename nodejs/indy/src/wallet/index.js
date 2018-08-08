@@ -11,15 +11,19 @@ exports.get = async function() {
     return wallet;
 };
 
+//TODO: replace whatever with real user password
 exports.setup = async function () {
     try {
-        await sdk.createWallet(config.poolName, config.walletName);
+        //await sdk.createWallet(config.poolName, config.walletName, "default", null, {"key": "whatever"});
+        await sdk.createWallet({"id": config.walletName}, {"key": config.userInformation.password});
     } catch (e) {
         if (e.message !== "WalletAlreadyExistsError") {
+            console.warn("create wallet failed with message: " + e.message);
             throw e;
         }
-    } finally {
-        wallet = await sdk.openWallet(config.walletName);
+        console.info("wallet already exist, try to open wallet");
     }
+
+    wallet = await sdk.openWallet({"id": config.walletName}, {"key": config.userInformation.password});
 };
 
