@@ -2,6 +2,7 @@
 export MSYS_NO_PATHCONV=1
 # Multiplatform approach to getting the dockerhost IP
 export DOCKERHOST=${APPLICATION_URL-$(docker run --rm --net=host codenvy/che-ip)}
+
 set -e
 
 SCRIPT_HOME="$( cd "$( dirname "$0" )" && pwd )"
@@ -43,6 +44,17 @@ EOF
 exit 1
 }
 # -----------------------------------------------------------------------------------------------------------------
+# Default Settings:
+# -----------------------------------------------------------------------------------------------------------------
+ALL_CONTAINERS="\
+    alice\
+    bob\
+    faber\
+    acme\
+    thrift\
+"
+
+# -----------------------------------------------------------------------------------------------------------------
 # Functions:
 # -----------------------------------------------------------------------------------------------------------------
 deleteVolumes() {
@@ -61,6 +73,7 @@ deleteVolumes() {
     echo "No project volumes exist."
   fi
 }
+
 # =================================================================================================================
 
 pushd ${SCRIPT_HOME} >/dev/null
@@ -68,11 +81,12 @@ pushd ${SCRIPT_HOME} >/dev/null
 case "$1" in
   start)
       if [ -z "$2" ]; then
-        SVCS='alice bob faber acme thrift'
+        SVCS=$ALL_CONTAINERS
       else
         shift
         SVCS="$@"
       fi
+      echo "connect agent with pool on IP: $TEST_POOL_IP"
       docker-compose up ${SVCS}
     ;;
   open)
@@ -102,7 +116,7 @@ case "$1" in
       docker build -t indy-agentjs .
     ;;
   rebuild)
-      docker-compose build --no-cache
+      docker build --no-cache -t indy-agentjs .
     ;;
   rm)
       deleteVolumes

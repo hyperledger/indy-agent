@@ -5,7 +5,7 @@ services:
   #
   alice:
     image: indy-agentjs
-    command: 'bash -c ''npm start'''
+  #  command: 'bash -c ''npm start'''
     environment:
       - PORT=3000
       - NAME=Alice
@@ -23,7 +23,7 @@ services:
   # 
   bob:
     image: indy-agentjs
-    command: 'bash -c ''npm start'''
+  #  command: 'bash -c ''npm start'''
     environment:
       - PORT=3001
       - NAME=Bob
@@ -39,7 +39,7 @@ services:
 
   faber:
       image: indy-agentjs
-      command: 'bash -c ''npm start'''
+  #    command: 'bash -c ''npm start'''
       environment:
         - PORT=3002
         - NAME=Faber University
@@ -56,7 +56,7 @@ services:
 
   acme:
       image: indy-agentjs
-      command: 'bash -c ''npm start'''
+  #    command: 'bash -c ''npm start'''
       environment:
         - PORT=3003
         - NAME=Acme Corporation
@@ -73,7 +73,7 @@ services:
 
   thrift:
       image: indy-agentjs
-      command: 'bash -c ''npm start'''
+  #    command: 'bash -c ''npm start'''
       environment:
         - PORT=3004
         - NAME=Thrift Bank
