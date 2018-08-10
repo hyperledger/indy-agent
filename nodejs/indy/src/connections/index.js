@@ -40,10 +40,10 @@ exports.acceptRequest = async function (theirEndpointDid, theirDid, requestNonce
 
     let theirVerkey = await sdk.keyForDid(await indy.pool.get(), await indy.wallet.get(), theirDid);
 
-    await sdk.storeTheirDid(await indy.wallet.get(), {
-        did: theirDid,
-        verkey: theirVerkey
-    });
+    // await sdk.storeTheirDid(await indy.wallet.get(), {
+    //     did: theirDid,
+    //     verkey: theirVerkey
+    // });
 
     let meta = JSON.stringify({
         theirEndpointDid: theirEndpointDid,

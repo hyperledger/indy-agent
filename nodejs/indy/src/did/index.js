@@ -81,14 +81,20 @@ exports.getTheirEndpointDid = async function (theirDid) {
 async function setupSteward() {
     let stewardWalletName = `stewardWalletFor:${config.walletName}`;
     try {
-        await sdk.createWallet(config.poolName, stewardWalletName);
+        await sdk.createWallet({id: stewardWalletName}, {key: 'whatever'});
     } catch (e) {
-        if (e.message !== "WalletAlreadyExistsError") {
+        if (e.message !== 'WalletAlreadyExistsError') {
+            console.warn('create wallet failed with message: ' + e.message);
             throw e;
         }
     } finally {
-        stewardWallet = await sdk.openWallet(stewardWalletName);
+        console.info('wallet already exist, try to open wallet');
     }
+
+    stewardWallet = await sdk.openWallet(
+        {id: stewardWalletName},
+        {key: 'whatever'}
+    );
 
     let stewardDidInfo = {
         'seed': '000000000000000000000000Steward1'
