@@ -136,7 +136,7 @@ The connection request message is used to provide a DID to an agent in establish
  "type": "urn:indy:sov:agent:message_type:sovrin.org/connection/1.0/connection_request",
  "message": {
    "did": "<did>",
-   "request_nonce": "<request_nonce>",
+   "nonce": "<request_nonce>",
    "endpoint_did": "<endpoint_did>",
    "endpoint": "<endpoint>"
  }
