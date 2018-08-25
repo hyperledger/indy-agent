@@ -16,7 +16,8 @@ async def ui_connect(_, agent: Agent) -> Message:
         }
     )
 
-@aiohttp_jinja2
+
+@aiohttp_jinja2.template('index.html')
 async def root(request):
     agent = request.app['agent']
     agent.offer_endpoint = request.url.scheme + '://' + request.url.host
