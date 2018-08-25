@@ -1,11 +1,14 @@
-from aiohttp import web
+import aiohttp_jinja2
+import jinja2
+
 from model import Message, Agent
 from message_types import UI
+
 
 async def ui_connect(_, agent: Agent) -> Message:
     return Message(
         UI.STATE,
-        None, # No ID needed
+        None,  # No ID needed
         {
             'initialized': agent.initialized,
             'agent_name': agent.owner,
@@ -13,6 +16,7 @@ async def ui_connect(_, agent: Agent) -> Message:
         }
     )
 
+@aiohttp_jinja2
 async def root(request):
     agent = request.app['agent']
     agent.offer_endpoint = request.url.scheme + '://' + request.url.host
@@ -23,4 +27,4 @@ async def root(request):
     else:
         agent.endpoint += '/indy'
         agent.offer_endpoint += '/offer'
-    return web.FileResponse('view/index.html')
+    return {'ui_token': agent.ui_token}
