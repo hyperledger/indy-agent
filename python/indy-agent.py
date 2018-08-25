@@ -13,15 +13,16 @@ import sys
 import uuid
 from aiohttp import web
 
+import modules.connection as connection
+import modules.init as init
+import modules.ui as ui
+import serializer.json_serializer as Serializer
 from receiver.message_receiver import MessageReceiver as Receiver
 from router.simple_router import SimpleRouter as Router
 from ui_event import UIEventQueue
 from model import Agent
 from message_types import CONN, UI
-import modules.connection as connection
-import modules.init as init
-import modules.ui as ui
-import serializer.json_serializer as Serializer
+
 
 if len(sys.argv) == 2 and str.isdigit(sys.argv[1]):
     PORT = int(sys.argv[1])
