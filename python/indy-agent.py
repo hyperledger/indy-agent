@@ -11,6 +11,8 @@
 import asyncio
 import sys
 import uuid
+import aiohttp_jinja2
+import jinja2
 from aiohttp import web
 
 import modules.connection as connection
@@ -32,6 +34,8 @@ else:
 LOOP = asyncio.get_event_loop()
 
 AGENT = web.Application()
+
+aiohttp_jinja2.setup(AGENT, loader=jinja2.FileSystemLoader('view'))
 
 AGENT['msg_router'] = Router()
 AGENT['msg_receiver'] = Receiver()
