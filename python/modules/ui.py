@@ -1,4 +1,3 @@
-import json
 from aiohttp import web
 from model import Message, Agent
 from message_types import UI

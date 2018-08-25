@@ -4,7 +4,6 @@
 # pylint: disable=import-error
 
 import json
-from aiohttp import web
 from indy import wallet, did
 import modules.ui as ui
 

@@ -9,9 +9,7 @@
 # pylint: disable=invalid-name
 
 import asyncio
-import os
 import sys
-import json
 import uuid
 from aiohttp import web
 
