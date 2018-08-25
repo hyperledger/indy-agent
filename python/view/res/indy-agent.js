@@ -276,6 +276,30 @@
         let cell4 = row.insertCell();
         let cell5 = row.insertCell();
 
+        let history_btn = document.createElement("button");
+        history_btn.id = connName + "_history";
+        history_btn.type = "button";
+        history_btn.className = "btn btn-info";
+        history_btn.textContent = "View";
+        history_btn.setAttribute('data-toggle', 'modal');
+        history_btn.setAttribute('data-target', '#exampleModal');
+
+        history_btn.addEventListener(
+            "click",
+            function (event) {
+                if(status === "Connected") {
+                    document.getElementById("history_body").innerText = conns[connId].join('');
+                }
+                else if(status === "Pending") {
+                    document.getElementById("history_body").innerText = pending_conns[connId].join('');
+                }
+                else if(status === "Received") {
+                    document.getElementById("history_body").innerText = received_conns[connId].join('');
+                }
+
+            }
+        );
+
         actions.forEach(function (item, i, actions) {
             let butn = document.createElement("button");
             butn.id = connName + "_" + item[0];
@@ -295,6 +319,7 @@
         cell1.innerHTML = "#";
         cell2.innerHTML = connName;
         cell3.innerHTML = status;
+        cell4.appendChild(history_btn);
     }
 
     // }}}

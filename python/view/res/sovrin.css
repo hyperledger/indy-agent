@@ -7,6 +7,19 @@
 #connections-wrapper {
 }
 
+#conns-new {
+    text-align: center;
+}
+
+table button {
+    margin: 5px;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+    width: 20%;
+}
+
 .connection {
     display: table;
     height: 50px;
