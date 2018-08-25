@@ -2,6 +2,12 @@
 
     const TOKEN = document.getElementById("ui_token").innerText;
 
+    var conns = {};
+    var pending_conns = {};
+    var received_conns = {};
+
+    connectionsTable = document.getElementById("conns-new");
+
     const MESSAGE_TYPES = {
         STATE: "urn:sovrin:agent:message_type:sovrin.org/ui/state",
         STATE_REQUEST: "urn:sovrin:agent:message_type:sovrin.org/ui/state_request",
@@ -19,6 +25,10 @@
         OFFER_ACCEPTED_SENT: "urn:sovrin:agent:message_type:sovrin.org/ui/offer_accepted_sent",
         CONN_REJECTED: "urn:sovrin:agent:message_type:sovrin.org/ui/connection_rejected"
     };
+
+    // var message_display = $('#message_display');
+
+    var msg_counter = 0;
 
     // Message Router {{{
     var msg_router = {
@@ -53,11 +63,11 @@
         update:
         function (socket, msg) {
             state = msg.message;
-            if (state.initialized == false) {
+            if (state.initialized === false) {
                 showTab('login');
             } else {
                 document.getElementById('agent_name').value = state.agent_name;
-                document.getElementById('agent_name_header').innerHTML = state.agent_name;
+                document.getElementById('agent_name_header').innerHTML = "Agent's name: " + state.agent_name;
                 showTab('relationships');
             }
         },
@@ -98,30 +108,27 @@
                 }
             };
             socket.send(JSON.stringify(msg));
+
+
+
         },
         offer_sent:
         function (socket, msg) {
-            document.getElementById(msg.message.name + '_reject').addEventListener(
-                "click",
-                function (event) {
-                     connections.sender_send_offer_rejected(socket, msg);
-                }
-            );
+
+            pending_conns[msg.message.id] = [];
+            pending_conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.SEND_OFFER + '\n');
+
+            pending_conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.OFFER_SENT + '\n');
+
+            displayConnection(msg.message.name, msg.message.id, [['Reject', connections.sender_send_offer_rejected, socket, msg]], 'Pending');
         },
         offer_recieved:
         function (socket, msg) {
-            document.getElementById(msg.message.name + '_accept').addEventListener(
-                "click",
-                function (event) {
-                    connections.send_offer_accepted(socket, msg)
-                }
-            );
-            document.getElementById(msg.message.name + '_reject').addEventListener(
-                "click",
-                function (event) {
-                     connections.receiver_send_offer_rejected(socket, msg)
-                }
-            );
+            received_conns[msg.message.id] = [];
+            received_conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.OFFER_RECEIVED + '\n');
+
+            displayConnection(msg.message.name, msg.message.id, [['Reject', connections.receiver_send_offer_rejected, socket, msg],
+                                                 ['Accept', connections.send_offer_accepted, socket, msg]], 'Received');
         },
         send_offer_accepted:
         function (socket, msg) {
@@ -133,25 +140,29 @@
                         id: msg.message.id
                 }
             };
+            received_conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.SEND_OFFER_ACCEPTED + '\n');
+
             socket.send(JSON.stringify(accepted_msg));
         },
         offer_accepted_sent:
         function (socket, msg) {
-            document.getElementById(msg.message.name + '_reject').addEventListener(
-                "click",
-                function (event) {
-                     connections.send_conn_rejected(socket, msg)
-                }
-            );
+            removeElementById(msg.message.name + '_row');
+
+            conns[msg.message.id] = [JSON.parse(JSON.stringify(received_conns[msg.message.id]))];
+            delete received_conns[msg.message.id];
+            conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.OFFER_ACCEPTED_SENT + '\n');
+
+            displayConnection(msg.message.name, msg.message.id, [['Reject', connections.send_conn_rejected, socket, msg]], 'Connected');
         },
         offer_accepted:
         function (socket, msg) {
-            document.getElementById(msg.message.name + '_reject').addEventListener(
-                "click",
-                function (event) {
-                     connections.send_conn_rejected(socket, msg)
-                }
-            );
+            removeElementById(msg.message.name + '_row');
+
+            conns[msg.message.id] = [JSON.parse(JSON.stringify(pending_conns[msg.message.id]))];
+            delete pending_conns[msg.message.id];
+            conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.OFFER_ACCEPTED + '\n');
+
+            displayConnection(msg.message.name, msg.message.id, [['Reject', connections.send_conn_rejected, socket, msg]], 'Connected');
         },
         receiver_send_offer_rejected:
         function (socket, msg) {
@@ -164,6 +175,9 @@
                 }
             };
             socket.send(JSON.stringify(rejected_msg));
+            received_conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.RECEIVER_SEND_OFFER_REJECTED + '\n');
+
+            delete received_conns[msg.message.id];
         },
         sender_send_offer_rejected:
         function (socket, msg) {
@@ -176,14 +190,18 @@
                 }
             };
             socket.send(JSON.stringify(rejected_msg));
+            pending_conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.SENDER_SEND_OFFER_REJECTED + '\n');
+
+            delete pending_conns[msg.message.id];
+
         },
         sender_offer_rejected:
         function (socket, msg) {
-            removeElementById(msg.message['name'] + '_pending');
+            removeElementById(msg.message['name'] + '_row');
         },
         receiver_offer_rejected:
         function (socket, msg) {
-            removeElementById(msg.message['name'] + '_received');
+            removeElementById(msg.message['name'] + '_row');
         },
         send_conn_rejected:
         function (socket, msg) {
@@ -196,10 +214,13 @@
                 }
             };
             socket.send(JSON.stringify(rejected_msg));
+            conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.SEND_CONN_REJECTED + '\n');
+
+            delete conns[msg.message.id];
         },
         conn_rejected:
         function (socket, msg) {
-            removeElementById(msg.message.name + '_connection')
+            removeElementById(msg.message.name + '_row');
         }
     };
     // }}}
@@ -215,7 +236,7 @@
     msg_router.register(MESSAGE_TYPES.CONN_REJECTED, connections.conn_rejected);
 
     // }}}
-    
+
     // Create WebSocket connection.
     const socket = new WebSocket('ws://' + window.location.hostname + ':' + window.location.port + '/ws');
 
@@ -226,8 +247,11 @@
 
     // Listen for messages
     socket.addEventListener('message', function (event) {
+        // msg_counter += 1;
+
         console.log('Routing: ' + event.data);
         msg = JSON.parse(event.data);
+        // message_display.append(msg_counter, " ", JSON.stringify(msg, null, 4), "</br>");
         msg_router.route(socket, msg);
     });
 
@@ -242,6 +266,36 @@
         "click",
         function (event) { ui_agent.inititialize(socket); }
     );
+
+    function displayConnection(connName, connId, actions, status) {
+        let row = connectionsTable.insertRow();
+        row.id = connName + "_row";
+        let cell1 = row.insertCell();
+        let cell2 = row.insertCell();
+        let cell3 = row.insertCell();
+        let cell4 = row.insertCell();
+        let cell5 = row.insertCell();
+
+        actions.forEach(function (item, i, actions) {
+            let butn = document.createElement("button");
+            butn.id = connName + "_" + item[0];
+            butn.type = "button";
+            butn.className = "btn btn-warning   ";
+            butn.textContent = item[0];
+            butn.addEventListener(
+                "click",
+                function (event) {
+                     item[1](item[2], item[3]);
+                }
+            );
+            cell5.appendChild(butn);
+
+        });
+
+        cell1.innerHTML = "#";
+        cell2.innerHTML = connName;
+        cell3.innerHTML = status;
+    }
 
     // }}}
 

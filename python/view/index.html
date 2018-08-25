@@ -92,21 +92,50 @@
                     </div>
                 </div>
             </div>
-            <h3 id="agent_name_header"></h3>
-            <div id='wrapper' class="row">
-                <div class="col-3">
-                    <!-- Button trigger modal -->
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#send_req_modal">
-                        Send Connection Offer
-                    </button>
+
+            <div id='conns-details-container' class="row">
+                <div class="col-sm" id="conns">
+                    <h3 id="agent_name_header" class="text-center">Agent's name: </h3>
                 </div>
             </div>
+
+            <table class="table table-bordered" id="conns-new">
+                <thead>
+                    <th scope="col">#</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">History</th>
+                    <th scope="col">Actions</th>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Messages history: </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body" id="history_body">
+                    ...
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
         </div>
     </main>
 
     <footer class="footer">
       <div class="container">
-        <span class="text-muted">Place sticky footer content here.</span>
+          <span class="text-muted">Your UI token is <span id="ui_token">{{ ui_token }}</span></span>
       </div>
     </footer>
 
@@ -122,3 +151,4 @@
 
   </body>
 </html>
+
