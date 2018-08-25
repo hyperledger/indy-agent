@@ -23,16 +23,30 @@
       <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
             <img id="nav-icon" src="/res/ICON.png" width="50px" height="50px">
           <a class="navbar-brand" href="/">Sovrin</a>
+
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarCollapse">
           <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
+              <a class="nav-link" href="#">Connections<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" href="#">Credentials<span class="sr-only">(current)</span></a>
             </li>
           </ul>
         </div>
+
+        <ul class="nav navbar-nav navbar-right">
+            <li>
+                <div class="btn-nav">
+                    <button type="button" class="btn btn-primary btn-small navbar-btn" data-toggle="modal" data-target="#send_req_modal">Send connection offer</button>
+                </div>
+            </li>
+        </ul>
+
       </nav>
     </header>
 
@@ -151,4 +165,3 @@
 
   </body>
 </html>
-
