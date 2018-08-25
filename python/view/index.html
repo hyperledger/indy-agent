@@ -95,7 +95,6 @@
             <h3 id="agent_name_header"></h3>
             <div id='wrapper' class="row">
                 <div class="col-3">
-                    <div id='connections-wrapper'></div>
                     <!-- Button trigger modal -->
                     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#send_req_modal">
                         Send Connection Offer
@@ -118,33 +117,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
 
-    <script id="pending_connection-template" type="text/x-handlebars-template">
-    <div class='list-group-item d-flex align-items-center disabled' id='{{ name }}_pending'>
-      <span class='circle yellow'></span>
-      <button id="{{ name }}_reject" type="button" class="btn btn-danger">Reject</button>
-      <p class='name'>Requested</p>
-      <p class='name'>{{ name }}</p>
-    </div>
-    </script>
-    <script id="received_connection-template" type="text/x-handlebars-template">
-    <div class='list-group-item d-flex align-items-center disabled' id='{{ name }}_received'>
-      <span class='circle orange'></span>
-      <button id="{{ name }}_accept" type="button" class="btn btn-success">Connect</button>
-      <button id="{{ name }}_reject" type="button" class="btn btn-danger">Reject</button>
-      <p class='name'>Request</p>
-      <p class='name'>{{ name }}</p>
-    </div>
-    </script>
-    <script id="connection-template" type="text/x-handlebars-template">
-    <div class='list-group-item d-flex align-items-center disabled' id='{{ name }}_connection'>
-      <span class='circle green'></span>
-      <button id="{{ name }}_reject" type="button" class="btn btn-danger">Reject</button>
-      <p class='name'>Established</p>
-      <p class='name'>{{ name }}</p>
-    </div>
-    </script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
     <script src="/res/indy-agent.js"></script>
     <script src="/res/utils.js"></script>
 

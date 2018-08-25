@@ -20,8 +20,6 @@
         CONN_REJECTED: "urn:sovrin:agent:message_type:sovrin.org/ui/connection_rejected"
     };
 
-    var connections_wrapper = $('#connections-wrapper');
-
     // Message Router {{{
     var msg_router = {
         routes: [],
@@ -103,10 +101,6 @@
         },
         offer_sent:
         function (socket, msg) {
-            var context = {name: msg.message.name};
-            var contextObj = pending_connection_template(context);
-            connections_wrapper.append(contextObj);
-
             document.getElementById(msg.message.name + '_reject').addEventListener(
                 "click",
                 function (event) {
@@ -116,10 +110,6 @@
         },
         offer_recieved:
         function (socket, msg) {
-            var context = {name: msg.message.name};
-            var contextObj = received_connection_template(context);
-            connections_wrapper.append(contextObj);
-
             document.getElementById(msg.message.name + '_accept').addEventListener(
                 "click",
                 function (event) {
@@ -147,11 +137,6 @@
         },
         offer_accepted_sent:
         function (socket, msg) {
-            var context = {name: msg.message.name};
-            var contextObj = connection_template(context);
-            removeElementById(msg.message.name + '_received');
-            connections_wrapper.append(contextObj);
-
             document.getElementById(msg.message.name + '_reject').addEventListener(
                 "click",
                 function (event) {
@@ -161,11 +146,6 @@
         },
         offer_accepted:
         function (socket, msg) {
-            var context = {name: msg.message.name};
-            var contextObj = connection_template(context);
-            removeElementById(msg.message.name + '_pending');
-            connections_wrapper.append(contextObj);
-
             document.getElementById(msg.message.name + '_reject').addEventListener(
                 "click",
                 function (event) {
@@ -222,14 +202,6 @@
             removeElementById(msg.message.name + '_connection')
         }
     };
-    // }}}
-
-    // Templates {{{
-
-    const pending_connection_template = Handlebars.compile(document.getElementById('pending_connection-template').innerHTML);
-    const received_connection_template = Handlebars.compile(document.getElementById('received_connection-template').innerHTML);
-    const connection_template = Handlebars.compile(document.getElementById('connection-template').innerHTML);
-
     // }}}
 
     // Message Routes {{{
