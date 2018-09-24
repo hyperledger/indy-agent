@@ -11,19 +11,21 @@
     const MESSAGE_TYPES = {
         STATE: "urn:sovrin:agent:message_type:sovrin.org/ui/state",
         STATE_REQUEST: "urn:sovrin:agent:message_type:sovrin.org/ui/state_request",
-        SEND_OFFER: "urn:sovrin:agent:message_type:sovrin.org/ui/send_offer",
-        SEND_OFFER_ACCEPTED: "urn:sovrin:agent:message_type:sovrin.org/ui/send_offer_accepted",
-        SENDER_SEND_OFFER_REJECTED: "urn:sovrin:agent:message_type:sovrin.org/ui/sender_send_offer_rejected",
-        RECEIVER_SEND_OFFER_REJECTED: "urn:sovrin:agent:message_type:sovrin.org/ui/receiver_send_offer_rejected",
-        SENDER_OFFER_REJECTED: "urn:sovrin:agent:message_type:sovrin.org/ui/sender_offer_rejected",
-        RECEIVER_OFFER_REJECTED: "urn:sovrin:agent:message_type:sovrin.org/ui/receiver_offer_rejected",
-        SEND_CONN_REJECTED: "urn:sovrin:agent:message_type:sovrin.org/ui/send_connection_rejected",
         INITIALIZE: "urn:sovrin:agent:message_type:sovrin.org/ui/initialize",
-        OFFER_RECEIVED: "urn:sovrin:agent:message_type:sovrin.org/ui/offer_received",
-        OFFER_SENT: "urn:sovrin:agent:message_type:sovrin.org/ui/offer_sent",
-        OFFER_ACCEPTED: "urn:sovrin:agent:message_type:sovrin.org/ui/offer_accepted",
-        OFFER_ACCEPTED_SENT: "urn:sovrin:agent:message_type:sovrin.org/ui/offer_accepted_sent",
-        CONN_REJECTED: "urn:sovrin:agent:message_type:sovrin.org/ui/connection_rejected"
+
+        UI: {
+            SEND_INVITE: "urn:sovrin:agent:message_type:sovrin.org/ui/send_invite",
+            INVITE_SENT: "urn:sovrin:agent:message_type:sovrin.org/ui/invite_sent",
+            INVITE_RECEIVED: "urn:sovrin:agent:message_type:sovrin.org/ui/invite_received",
+
+            SEND_REQUEST: "urn:sovrin:agent:message_type:sovrin.org/ui/send_request",
+            REQUEST_SENT: "urn:sovrin:agent:message_type:sovrin.org/ui/request_sent",
+            REQUEST_RECEIVED: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request",
+
+            SEND_RESPONSE: "urn:sovrin:agent:message_type:sovrin.org/ui/send_response",
+            RESPONSE_SENT: "urn:sovrin:agent:message_type:sovrin.org/ui/response_sent",
+            RESPONSE_RECEIVED: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/response"
+        }
     };
 
     // var message_display = $('#message_display');
