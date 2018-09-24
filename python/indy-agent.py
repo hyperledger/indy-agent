@@ -13,7 +13,10 @@ import sys
 import uuid
 import aiohttp_jinja2
 import jinja2
+import base64
+
 from aiohttp import web
+from indy import crypto
 
 import modules.connection as connection
 import modules.init as init
@@ -23,7 +26,8 @@ from receiver.message_receiver import MessageReceiver as Receiver
 from router.simple_router import SimpleRouter as Router
 from ui_event import UIEventQueue
 from model import Agent
-from message_types import CONN, UI
+from message_types import CONN, UI, UI_NEW, CONN_NEW
+from model import Message
 
 
 if len(sys.argv) == 2 and str.isdigit(sys.argv[1]):
@@ -65,16 +69,13 @@ LOOP.run_until_complete(RUNNER.setup())
 
 SERVER = web.TCPSite(RUNNER, 'localhost', PORT)
 
+
 async def conn_process(agent):
     conn_router = agent['conn_router']
     conn_receiver = agent['conn_receiver']
     ui_event_queue = agent['ui_event_queue']
 
-    await conn_router.register(CONN.OFFER, connection.offer_recv)
-    await conn_router.register(CONN.ACKNOWLEDGE, connection.offer_accepted)
-    await conn_router.register(CONN.SENDER_REJECTION, connection.receiver_offer_rejected)
-    await conn_router.register(CONN.RECEIVER_REJECTION, connection.sender_offer_rejected)
-    await conn_router.register(CONN.REJECTION, connection.conn_rejected)
+    await conn_router.register(CONN_NEW.SEND_INVITE, connection.invite_received)
 
     while True:
         msg_bytes = await conn_receiver.recv()
@@ -88,6 +89,7 @@ async def conn_process(agent):
         if res is not None:
             await ui_event_queue.send(Serializer.pack(res))
 
+
 async def message_process(agent):
     """ Message processing loop task.
         Message routes are also defined here through the message router.
@@ -96,54 +98,68 @@ async def message_process(agent):
     msg_receiver = agent['msg_receiver']
     ui_event_queue = agent['ui_event_queue']
 
-    await msg_router.register(CONN.REQUEST, connection.handle_request)
-    await msg_router.register(CONN.RESPONSE, connection.handle_response)
+    await msg_router.register(CONN_NEW.SEND_REQUEST, connection.request_received)
+    await msg_router.register(CONN_NEW.SEND_RESPONSE, connection.response_received)
 
     while True:
         encrypted_msg_bytes = await msg_receiver.recv()
-        # TODO: make this logic work
+
         try:
-            decrypted_msg_bytes = await crypto.anon_decrypt(
-                    agent.wallet_handle,
-                    agent.endpoint_vk,
+            encrypted_msg_str = Serializer.unpack(encrypted_msg_bytes)
+        except Exception as e:
+            print('Failed to unpack message: {}\n\nError: {}'.format(encrypted_msg_bytes, e))
+            continue
+
+        encrypted_msg_bytes = base64.b64decode(encrypted_msg_str.content.encode('utf-8'))
+
+        try:
+            decrypted_msg = await crypto.anon_decrypt(
+                    AGENT['agent'].wallet_handle,
+                    AGENT['agent'].endpoint_vk,
                     encrypted_msg_bytes
                     )
         except Exception as e:
-            print('Could not decrypt message: {}\nError: {}'.format(msg_bytes, e))
+            print('Could not decrypt message: {}\nError: {}'.format(encrypted_msg_bytes, e))
             continue
 
         try:
-            msg = Serializer.unpack(encrypted_msg_bytes)
+            msg = Serializer.unpack(decrypted_msg)
         except Exception as e:
-            print('Failed to unpack message: {}\n\nError: {}'.format(msg_bytes, e))
+            print('Failed to unpack message: {}\n\nError: {}'.format(decrypted_msg, e))
             continue
 
+        msg = Serializer.unpack_dict(msg.content)
+
         res = await msg_router.route(msg, agent['agent'])
+
         if res is not None:
             await ui_event_queue.send(Serializer.pack(res))
+
 
 async def ui_event_process(agent):
     ui_router = agent['ui_router']
     ui_event_queue = agent['ui_event_queue']
 
-    await ui_router.register(UI.SEND_OFFER, connection.send_offer)
+    await ui_router.register(UI_NEW.SEND_INVITE, connection.send_invite)
+    await ui_router.register(UI_NEW.INVITE_RECEIVED, connection.invite_received)
+    await ui_router.register(UI_NEW.SEND_REQUEST, connection.send_request)
+    await ui_router.register(UI_NEW.SEND_RESPONSE, connection.send_response)
+
     await ui_router.register(UI.STATE_REQUEST, ui.ui_connect)
     await ui_router.register(UI.INITIALIZE, init.initialize_agent)
-    await ui_router.register(UI.SEND_OFFER_ACCEPTED, connection.send_offer_accepted)
-    await ui_router.register(UI.SENDER_SEND_OFFER_REJECTED, connection.sender_send_offer_rejected)
-    await ui_router.register(UI.RECEIVER_SEND_OFFER_REJECTED, connection.receiver_send_offer_rejected)
-    await ui_router.register(UI.SEND_CONN_REJECTED, connection.send_conn_rejected)
 
     while True:
-        msg_bytes = await ui_event_queue.recv()
-        try:
-            msg = Serializer.unpack(msg_bytes)
-        except Exception as e:
-            print('Failed to unpack message: {}\n\nError: {}'.format(msg_bytes, e))
-            continue
+        msg = await ui_event_queue.recv()
+
+        if not isinstance(msg, Message):
+            try:
+                msg = Serializer.unpack(msg)
+            except Exception as e:
+                print('Failed to unpack message: {}\n\nError: {}'.format(msg, e))
+                continue
 
         if msg.id != UI_TOKEN:
-            print('Invalid token received, rejecting message: {}'.format(msg_bytes))
+            print('Invalid token received, rejecting message: {}'.format(msg))
             continue
 
         res = await ui_router.route(msg, agent['agent'])
