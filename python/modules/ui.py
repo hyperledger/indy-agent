@@ -6,10 +6,10 @@ from message_types import UI
 
 
 async def ui_connect(_, agent: Agent) -> Message:
+
     return Message(
-        UI.STATE,
-        None,  # No ID needed
-        {
+        type=UI.STATE,
+        content={
             'initialized': agent.initialized,
             'agent_name': agent.owner,
             'connections': [conn for _, conn in agent.connections.items()]
