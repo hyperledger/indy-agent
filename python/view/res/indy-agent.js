@@ -2,9 +2,7 @@
 
     const TOKEN = document.getElementById("ui_token").innerText;
 
-    var conns = {};
-    var pending_conns = {};
-    var received_conns = {};
+    var sendInviteButton = document.getElementById("btn_send_invite");
 
     connectionsTable = document.getElementById("conns-new");
 
@@ -27,10 +25,6 @@
             RESPONSE_RECEIVED: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/response"
         }
     };
-
-    // var message_display = $('#message_display');
-
-    var msg_counter = 0;
 
     // Message Router {{{
     var msg_router = {
@@ -58,13 +52,13 @@
                 {
                     type: MESSAGE_TYPES.STATE_REQUEST,
                     id: TOKEN,
-                    message: null
+                    content: null
                 }
             ));
         },
         update:
         function (socket, msg) {
-            state = msg.message;
+            state = msg.content;
             if (state.initialized === false) {
                 showTab('login');
             } else {
@@ -78,7 +72,7 @@
             init_message = {
                 type: MESSAGE_TYPES.INITIALIZE,
                 id: TOKEN,
-                message: {
+                content: {
                     name: document.getElementById('agent_name').value,
                     passphrase: document.getElementById('passphrase').value
                 }
@@ -88,154 +82,104 @@
     };
     // }}}
 
-    function showTab(id) {
-        let i;
-        let x = document.getElementsByClassName("tab");
-        for (i = 0; i < x.length; i++) {
-            x[i].style.display = "none";
-        }
-        document.getElementById(id).style.display = "block";
-    }
 
     // Connections {{{
     var connections = {
-        send_offer:
+        send_invite:
         function (socket) {
             msg = {
-                type: MESSAGE_TYPES.SEND_OFFER,
+                type: MESSAGE_TYPES.UI.SEND_INVITE,
                 id: TOKEN,
-                message: {
+                content: {
                     name: document.getElementById('send_name').value,
                     endpoint: document.getElementById('send_endpoint').value
                 }
             };
             socket.send(JSON.stringify(msg));
 
-
-
         },
-        offer_sent:
+
+        invite_sent:
         function (socket, msg) {
-
-            pending_conns[msg.message.id] = [];
-            pending_conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.SEND_OFFER + '\n');
-
-            pending_conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.OFFER_SENT + '\n');
-
-            displayConnection(msg.message.name, msg.message.id, [['Reject', connections.sender_send_offer_rejected, socket, msg]], 'Pending');
+            displayConnection(msg.content.name, [], 'Invite sent');
         },
-        offer_recieved:
-        function (socket, msg) {
-            received_conns[msg.message.id] = [];
-            received_conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.OFFER_RECEIVED + '\n');
 
-            displayConnection(msg.message.name, msg.message.id, [['Reject', connections.receiver_send_offer_rejected, socket, msg],
-                                                 ['Accept', connections.send_offer_accepted, socket, msg]], 'Received');
-        },
-        send_offer_accepted:
+        invite_received:
         function (socket, msg) {
-            accepted_msg = {
-                type: MESSAGE_TYPES.SEND_OFFER_ACCEPTED,
+            document.getElementById("history_body").innerText = getTodayDate() + ": " + displayObject(msg.content.history);
+
+            displayConnection(msg.content.name, [['Send Request', connections.send_request, socket, msg]], 'Invite received');
+        },
+
+        send_request:
+        function (socket, prevMsg) {
+            msg = {
+                type: MESSAGE_TYPES.UI.SEND_REQUEST,
                 id: TOKEN,
-                message: {
-                        name: msg.message.name,
-                        id: msg.message.id
+                content: {
+                        name: prevMsg.content.name,
+                        endpoint: prevMsg.content.endpoint.url,
+                        key: prevMsg.content.endpoint.verkey,
                 }
             };
-            received_conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.SEND_OFFER_ACCEPTED + '\n');
+            socket.send(JSON.stringify(msg));
 
-            socket.send(JSON.stringify(accepted_msg));
         },
-        offer_accepted_sent:
+
+        request_sent:
         function (socket, msg) {
-            removeElementById(msg.message.name + '_row');
-
-            conns[msg.message.id] = [JSON.parse(JSON.stringify(received_conns[msg.message.id]))];
-            delete received_conns[msg.message.id];
-            conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.OFFER_ACCEPTED_SENT + '\n');
-
-            displayConnection(msg.message.name, msg.message.id, [['Reject', connections.send_conn_rejected, socket, msg]], 'Connected');
+            removeRow(msg.content.name);
+            displayConnection(msg.content.name, [], 'Request sent');
         },
-        offer_accepted:
+
+        request_received:
         function (socket, msg) {
-            removeElementById(msg.message.name + '_row');
-
-            conns[msg.message.id] = [JSON.parse(JSON.stringify(pending_conns[msg.message.id]))];
-            delete pending_conns[msg.message.id];
-            conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.OFFER_ACCEPTED + '\n');
-
-            displayConnection(msg.message.name, msg.message.id, [['Reject', connections.send_conn_rejected, socket, msg]], 'Connected');
+            document.getElementById("history_body").innerText = getTodayDate() + ": " + displayObject(msg.content.history);
+            removeRow(msg.content.name);
+            displayConnection(msg.content.name, [['Send response', connections.send_response, socket, msg]], 'Request received');
         },
-        receiver_send_offer_rejected:
-        function (socket, msg) {
-            rejected_msg = {
-                type: MESSAGE_TYPES.RECEIVER_SEND_OFFER_REJECTED,
+
+        send_response:
+        function (socket, prevMsg) {
+            msg = {
+                type: MESSAGE_TYPES.UI.SEND_RESPONSE,
                 id: TOKEN,
-                message: {
-                        name: msg.message.name,
-                        id: msg.message.id
+                content: {
+                        name: prevMsg.content.name,
+                        endpoint_key: prevMsg.content.endpoint_key,
+                        endpoint_uri: prevMsg.content.endpoint_uri,
+                        endpoint_did: prevMsg.content.endpoint_did
                 }
             };
-            socket.send(JSON.stringify(rejected_msg));
-            received_conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.RECEIVER_SEND_OFFER_REJECTED + '\n');
+            socket.send(JSON.stringify(msg));
+        },
 
-            delete received_conns[msg.message.id];
-        },
-        sender_send_offer_rejected:
+        response_sent:
         function (socket, msg) {
-            rejected_msg = {
-                type: MESSAGE_TYPES.SENDER_SEND_OFFER_REJECTED,
-                id: TOKEN,
-                message: {
-                        name: msg.message.name,
-                        id: msg.message.id
-                }
-            };
-            socket.send(JSON.stringify(rejected_msg));
-            pending_conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.SENDER_SEND_OFFER_REJECTED + '\n');
+            removeRow(msg.content.name);
+            displayConnection(msg.content.name, [], 'Response sent');
+        },
 
-            delete pending_conns[msg.message.id];
+        response_received:
+        function (socket, msg) {
+            document.getElementById("history_body").innerText += getTodayDate() + ": " + displayObject(msg.content.history);
+            removeRow(msg.content.name);
+            displayConnection(msg.content.name, [], 'Response received');
+        },
 
-        },
-        sender_offer_rejected:
-        function (socket, msg) {
-            removeElementById(msg.message['name'] + '_row');
-        },
-        receiver_offer_rejected:
-        function (socket, msg) {
-            removeElementById(msg.message['name'] + '_row');
-        },
-        send_conn_rejected:
-        function (socket, msg) {
-            rejected_msg = {
-                type: MESSAGE_TYPES.SEND_CONN_REJECTED,
-                id: TOKEN,
-                message: {
-                        name: msg.message.name,
-                        id: msg.message.id
-                }
-            };
-            socket.send(JSON.stringify(rejected_msg));
-            conns[msg.message.id].push(getTodayDate() + " " + MESSAGE_TYPES.SEND_CONN_REJECTED + '\n');
-
-            delete conns[msg.message.id];
-        },
-        conn_rejected:
-        function (socket, msg) {
-            removeElementById(msg.message.name + '_row');
-        }
     };
     // }}}
 
     // Message Routes {{{
     msg_router.register(MESSAGE_TYPES.STATE, ui_agent.update);
-    msg_router.register(MESSAGE_TYPES.OFFER_SENT, connections.offer_sent);
-    msg_router.register(MESSAGE_TYPES.OFFER_RECEIVED, connections.offer_recieved);
-    msg_router.register(MESSAGE_TYPES.OFFER_ACCEPTED, connections.offer_accepted);
-    msg_router.register(MESSAGE_TYPES.OFFER_ACCEPTED_SENT, connections.offer_accepted_sent);
-    msg_router.register(MESSAGE_TYPES.SENDER_OFFER_REJECTED, connections.sender_offer_rejected);
-    msg_router.register(MESSAGE_TYPES.RECEIVER_OFFER_REJECTED, connections.receiver_offer_rejected);
-    msg_router.register(MESSAGE_TYPES.CONN_REJECTED, connections.conn_rejected);
+
+
+    msg_router.register(MESSAGE_TYPES.UI.INVITE_SENT, connections.invite_sent);
+    msg_router.register(MESSAGE_TYPES.UI.INVITE_RECEIVED, connections.invite_received);
+    msg_router.register(MESSAGE_TYPES.UI.REQUEST_SENT, connections.request_sent);
+    msg_router.register(MESSAGE_TYPES.UI.RESPONSE_RECEIVED, connections.response_received);
+    msg_router.register(MESSAGE_TYPES.UI.REQUEST_RECEIVED, connections.request_received);
+    msg_router.register(MESSAGE_TYPES.UI.RESPONSE_SENT, connections.response_sent);
 
     // }}}
 
@@ -249,11 +193,8 @@
 
     // Listen for messages
     socket.addEventListener('message', function (event) {
-        // msg_counter += 1;
-
         console.log('Routing: ' + event.data);
         msg = JSON.parse(event.data);
-        // message_display.append(msg_counter, " ", JSON.stringify(msg, null, 4), "</br>");
         msg_router.route(socket, msg);
     });
 
@@ -261,15 +202,18 @@
     // Need reference to socket so must be after socket creation
     document.getElementById('send_offer').addEventListener(
         "click",
-        function (event) { connections.send_offer(socket); }
+        function (event) { connections.send_invite(socket); }
     );
 
     document.getElementById('agent_init').addEventListener(
         "click",
-        function (event) { ui_agent.inititialize(socket); }
+        function (event) {
+            ui_agent.inititialize(socket);
+            sendInviteButton.style.display = "block";
+        }
     );
 
-    function displayConnection(connName, connId, actions, status) {
+    function displayConnection(connName, actions, status) {
         let row = connectionsTable.insertRow();
         row.id = connName + "_row";
         let cell1 = row.insertCell();
@@ -285,22 +229,6 @@
         history_btn.textContent = "View";
         history_btn.setAttribute('data-toggle', 'modal');
         history_btn.setAttribute('data-target', '#exampleModal');
-
-        history_btn.addEventListener(
-            "click",
-            function (event) {
-                if(status === "Connected") {
-                    document.getElementById("history_body").innerText = conns[connId].join('');
-                }
-                else if(status === "Pending") {
-                    document.getElementById("history_body").innerText = pending_conns[connId].join('');
-                }
-                else if(status === "Received") {
-                    document.getElementById("history_body").innerText = received_conns[connId].join('');
-                }
-
-            }
-        );
 
         actions.forEach(function (item, i, actions) {
             let butn = document.createElement("button");
