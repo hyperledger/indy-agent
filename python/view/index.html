@@ -41,7 +41,7 @@
 
         <ul class="nav navbar-nav navbar-right">
             <li>
-                <div class="btn-nav">
+                <div class="btn-nav" id="btn_send_invite" style="display: none">
                     <button type="button" class="btn btn-primary btn-small navbar-btn" data-toggle="modal" data-target="#send_req_modal">Send connection offer</button>
                 </div>
             </li>
@@ -134,8 +134,10 @@
                       <span aria-hidden="true">&times;</span>
                     </button>
                   </div>
-                  <div class="modal-body" id="history_body">
-                    ...
+                  <div class="modal-body">
+                    <pre class="prettyprint lang-py" id="history_body">
+                      ...
+                    </pre>
                   </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -161,6 +163,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
 
     <script src="/res/indy-agent.js"></script>
+    <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
     <script src="/res/utils.js"></script>
 
   </body>

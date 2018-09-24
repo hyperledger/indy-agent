@@ -4,6 +4,14 @@ function removeElementById(id) {
     element.parentNode.removeChild(element);
 }
 
+function removeRow(connName) {
+    removeElementById(connName + '_row');
+}
+
+function displayObject(obj) {
+    return JSON.stringify(obj, null, 4); // beautiful indented obj.
+}
+
 function getTodayDate() {
     var tdate = new Date();
     var dd = tdate.getDate(); //yields day
@@ -18,3 +26,12 @@ function getTodayDate() {
 
     return currentDate;
 }
+
+function showTab(id) {
+        let i;
+        let x = document.getElementsByClassName("tab");
+        for (i = 0; i < x.length; i++) {
+            x[i].style.display = "none";
+        }
+        document.getElementById(id).style.display = "block";
+    }
