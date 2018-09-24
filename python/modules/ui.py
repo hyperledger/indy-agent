@@ -11,8 +11,7 @@ async def ui_connect(_, agent: Agent) -> Message:
         type=UI.STATE,
         content={
             'initialized': agent.initialized,
-            'agent_name': agent.owner,
-            'connections': [conn for _, conn in agent.connections.items()]
+            'agent_name': agent.owner
         }
     )
 
