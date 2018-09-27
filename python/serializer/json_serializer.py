@@ -1,16 +1,35 @@
-""" Serializer using json as i/o format.
+"""
+Serializer using json as i/o format.
 """
 
 import json
+
 from model import Message
 
-def unpack(dump: bytes) -> Message:
-    """ Deserialize from json string to Message.
-    """
-    msg_dict = json.loads(dump)
-    return Message(msg_dict['type'], msg_dict['did'], msg_dict['data'])
 
-def pack(msg: Message) -> bytes:
-    """ Serialize from Message to json string.
+def unpack_dict(dictionary: dict) -> Message:
+    deserialized_msg = Message(**dictionary)
+    return deserialized_msg
+
+
+def unpack(dump) -> Message:
     """
-    return json.dumps({"type": msg.msg_type, "did": msg.did, "data": msg.data})
+    Deserialize from bytes or str to Message
+    """
+    dump_dict = json.loads(dump)
+    deserialized_msg = Message(**dump_dict)
+    return deserialized_msg
+
+
+def pack(msg: Message) -> str:
+    """
+    Serialize from Message to json string or from dictionary to json string.
+    """
+
+    class MessageEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, Message):
+                return obj.to_dict()
+            return json.JSONEncoder.default(self, obj)
+
+    return json.dumps(msg, cls=MessageEncoder)

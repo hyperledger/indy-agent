@@ -3,32 +3,40 @@
 
 # pylint: disable=import-error
 
-from aiohttp import web
-from indy import wallet
+import json
 
-async def initialize_agent(request):
+from indy import wallet, did
+
+import modules.ui as ui
+
+
+async def initialize_agent(msg, agent):
     """ Initialize agent.
     """
-    agent = request.app['agent']
-    data = await request.post()
-    agent.owner = data['agent_name']
-    agent.endpoint = data['endpoint']
+    data = msg.content
+    agent.owner = data['name']
+    passphrase = data['passphrase']
+    wallet_config = json.dumps({"id": "wallet"})
+    wallet_credentials = json.dumps({"key": "wallet_key"})
 
     wallet_name = '%s-wallet' % agent.owner
 
     # pylint: disable=bare-except
     # TODO: better handle potential exceptions.
     try:
-        await wallet.create_wallet('pool1', wallet_name, None, None, None)
-    except:
-        pass
+        await wallet.create_wallet(wallet_config, wallet_credentials)
+    except Exception as e:
+        print(e)
 
     try:
-        agent.wallet_handle = await wallet.open_wallet(wallet_name, None, None)
-    except:
+        agent.wallet_handle = await wallet.open_wallet(wallet_config,
+                                                       wallet_credentials)
+    except Exception as e:
+        print(e)
         print("Could not open wallet!")
-        raise web.HTTPBadRequest()
+
+    (_, agent.endpoint_vk) = await did.create_and_store_my_did(
+        agent.wallet_handle, "{}")
 
     agent.initialized = True
-
-    raise web.HTTPFound('/')
+    return await ui.ui_connect(None, agent)

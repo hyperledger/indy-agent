@@ -4,220 +4,222 @@
 # pylint: disable=import-error
 
 import json
-import datetime
+import base64
 import aiohttp
-from aiohttp import web
-import aiohttp_jinja2
-from indy import crypto, did, pairwise
+from indy import crypto, did
+
 import serializer.json_serializer as Serializer
-
-async def handle_request_received(msg, agent):
-    """ Handle reception of request, storing to be accepted later.
-    """
-    agent.received_requests[msg.did] = Serializer.pack(msg)
+from model import Message
+from message_types import UI_NEW, CONN_NEW
+from helpers import serialize_bytes_json, bytes_to_str, str_to_bytes
 
 
-async def handle_response(msg, agent):
-    """ Handle reception of connection response.
+async def send_invite(msg: Message, agent) -> Message:
+    receiver_endpoint = msg.content['endpoint']
+    conn_name = msg.content['name']
 
-        Currently this relies on the did sent with the request being returned
-        with the response as an identifier so we can decrypt the message.
-
-        Relying on a nonce instead would be better.
-    """
-    wallet_handle = agent.wallet_handle
-
-    # Get my did and verkey
-    my_did = msg.did
-    my_vk = await did.key_for_local_did(wallet_handle, my_did)
-
-    # Anon Decrypt and decode the message
-    decrypted_data = await crypto.anon_decrypt(wallet_handle, my_vk, msg.data)
-
-    json_str = decrypted_data.decode("utf-8")
-    resp_data = json.loads(json_str)
-
-    # Get their did and vk and store in wallet
-    their_did = resp_data["did"]
-    their_vk = resp_data["verkey"]
-
-    identity_json = json.dumps({
-        "did": their_did,
-        "verkey": their_vk
-    })
-
-    await did.store_their_did(wallet_handle, identity_json)
-    #TODO: Do we want to store the metadata of owner and endpoint with their did?
-
-    # Create pairwise identifier
-    await pairwise.create_pairwise(
-        wallet_handle,
-        their_did,
-        my_did,
-        json.dumps({"test": "this is metadata"})
-    )
-
-
-
-
-async def handle_request_accepted(request):
-    """ Handle reception of accept connection request message.
-    """
-    accept_did = request.match_info['did']
-    agent = request.app['agent']
-    wallet_handle = agent.wallet_handle
-
-    if accept_did not in agent.received_requests:
-        raise web.HTTPNotFound()
-
-    msg = Serializer.unpack(agent.received_requests[accept_did])
-
-    #TODO: validate correct format for incoming data
-    data = msg.data
-    endpoint = data['endpoint']
-    verkey = data['verkey']
-    owner = data['owner']
-
-    ident_json = json.dumps(
-        {
-            "did": accept_did,
-            "verkey": verkey
+    msg = Message(
+        type=CONN_NEW.SEND_INVITE,
+        content={
+            'name': conn_name,
+            'endpoint': {
+                'url': agent.endpoint,
+                'verkey': agent.endpoint_vk,
+            },
         }
     )
+    serialized_msg = Serializer.pack(msg)
+    async with aiohttp.ClientSession() as session:
+        async with session.post(receiver_endpoint, data=serialized_msg) as resp:
+            print(resp.status)
+            print(await resp.text())
+
+    return Message(
+        type=UI_NEW.INVITE_SENT,
+        id=agent.ui_token,
+        content={'name': conn_name})
+
+
+async def invite_received(msg: Message, agent) -> Message:
+    conn_name = msg.content['name']
+
+    return Message(
+        type=UI_NEW.INVITE_RECEIVED,
+        content={'name': conn_name,
+                 'endpoint': msg.content['endpoint'],
+                 'history': msg}
+    )
+
+
+async def send_request(msg: Message, agent) -> Message:
+    their_endpoint = msg.content['endpoint']
+    conn_name = msg.content['name']
+    connection_key = msg.content['key']
+
+    my_endpoint_uri = agent.endpoint
+
+    (endpoint_did_str, endpoint_key) = await did.create_and_store_my_did(agent.wallet_handle, "{}")
+
+    #  workaround to pass conn_name securely back to the invite sender, otherwise we could just send the did
+    data_to_send = json.dumps(
+        {
+            "did": endpoint_did_str,
+            "conn_name": conn_name
+        }
+    )
+
+    endpoint_did_bytes = str_to_bytes(data_to_send)
 
     meta_json = json.dumps(
         {
-            "owner": owner,
-            "endpoint": endpoint
+            "conn_name": conn_name
         }
     )
 
-    (my_did, _) = await did.create_and_store_my_did(wallet_handle, "{}")
+    await did.set_did_metadata(agent.wallet_handle, endpoint_did_str, meta_json)
 
-    await did.store_their_did(wallet_handle, ident_json)
-
-    await did.set_endpoint_for_did(wallet_handle, accept_did, endpoint, verkey)
-
-    await did.set_did_metadata(wallet_handle, accept_did, meta_json)
-
-    await pairwise.create_pairwise(wallet_handle, accept_did, my_did, json.dumps({"hello":"world"}))
-
-    await send_response(accept_did, agent)
-
-    raise web.HTTPFound('/')
-
-
-@aiohttp_jinja2.template('index.html')
-async def send_request(request):
-    """ sends a connection request.
-
-        a connection request contains:
-         - data concerning the request:
-           - Name of Sender
-           - Purpose
-
-           - DID@A:B
-           - URL of agent
-           - Public verkey
-    """
-
-    agent = request.app['agent']
-
-    req_data = await request.post()
-
-    our_endpoint = agent.endpoint
-    endpoint = req_data['endpoint']
-    wallet_handle = agent.wallet_handle
-    owner = agent.owner
-
-
-    # get did and vk
-    (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
-
-    # get endpoint
-
-
-    # make http request
-    msg_json = json.dumps(
-        {
-            "type": "CONN_REQ",
-            "did": my_did,
-            "data": {
-                "endpoint": our_endpoint,
-                "owner": owner,
-                "verkey": my_vk
-            }
-        }
+    inner_msg = Message(
+        type= "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request",
+        key= agent.endpoint_vk,
+        endpoint= my_endpoint_uri,
+        content= serialize_bytes_json(await crypto.auth_crypt(agent.wallet_handle, endpoint_key, connection_key, endpoint_did_bytes))
     )
 
-    # add to queue
-    agent.connections[endpoint] = {
-        "endpoint": endpoint,
-        "time": str(datetime.datetime.now()).split(' ')[1].split('.')[0],
-        "status": "pending"
-    }
+    outer_msg = Message(
+        type='did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/routing/1.0/forward_to_key',
+        key=agent.endpoint_vk,
+        content=inner_msg
+    )
 
-    # send to server
-    print("Sending to {}".format(endpoint))
+    serialized_outer_msg = Serializer.pack(outer_msg)
+
+    serialized_outer_msg_bytes = str_to_bytes(serialized_outer_msg)
+
+    all_message = Message(
+        type=CONN_NEW.SEND_REQUEST,
+        content=serialize_bytes_json(
+            await crypto.anon_crypt(connection_key,
+                                    serialized_outer_msg_bytes))
+    )
+
+    serialized_msg = Serializer.pack(all_message)
+
     async with aiohttp.ClientSession() as session:
-        async with session.post(endpoint, data=msg_json) as resp:
+        async with session.post(their_endpoint, data=serialized_msg) as resp:
             print(resp.status)
             print(await resp.text())
 
-
-    # Testing for webpage:
-    conns = agent.connections
-    reqs = agent.received_requests
-    owner = agent.owner
-    if owner is None or owner == '':
-        owner = 'Default'
-    return {
-        "agent_name": owner,
-        "connections": conns,
-        "requests": reqs
-    }
+    return Message(
+        type=UI_NEW.REQUEST_SENT,
+        id=agent.ui_token,
+        content={'name': conn_name}
+    )
 
 
+async def request_received(msg: Message, agent) -> Message:
+    sender_endpoint_uri = msg.endpoint
+    endpoint_key = msg.key
 
-async def send_response(to_did, agent):
-    """ sends a connection response should be anon_encrypted.
+    message_bytes = msg.content.encode('utf-8')
+    message_bytes = base64.b64decode(message_bytes)
 
-        a connection response will include:
+    sender_key_str, sender_data_bytes = await crypto.auth_decrypt(
+        agent.wallet_handle, agent.endpoint_vk, message_bytes)
 
-        - user DID, and verkey
-    """
+    sender_data_json = json.loads(sender_data_bytes.decode('utf-8'))
 
-    # find endpoint
-    wallet_handle = agent.wallet_handle
-    meta = json.loads(await did.get_did_metadata(wallet_handle, to_did))
-    endpoint = meta['endpoint']
-    print(endpoint)
+    sender_did_str = sender_data_json['did']
+    conn_name = sender_data_json['conn_name']
 
-    their_vk = await did.key_for_local_did(wallet_handle, to_did)
-    print("Their Verkey: {}".format(their_vk))
-
-    pairwise_json = json.loads(await pairwise.get_pairwise(wallet_handle, to_did))
-    print(pairwise_json)
-    my_did = pairwise_json['my_did']
-    my_vk = await did.key_for_local_did(wallet_handle, my_did)
-    print(my_vk)
-
-    data = {
-        'did': my_did,
-        'verkey': my_vk
-    }
-
-    data = await crypto.anon_crypt(their_vk, json.dumps(data).encode('utf-8'))
-
-    envelope = json.dumps(
+    identity_json = json.dumps(
         {
-            'type': 'CONN_RES',
-            'did': to_did,
-            'data': data
+            "did": sender_did_str,
+            # TODO: we don't use verkey later
+            "verkey": sender_key_str
         }
     )
 
+    await did.store_their_did(agent.wallet_handle, identity_json)
+
+    meta_json = json.dumps(
+        {
+            "conn_name": conn_name
+        }
+    )
+
+    await did.set_did_metadata(agent.wallet_handle, sender_did_str, meta_json)
+
+    return Message(
+        type=UI_NEW.REQUEST_RECEIVED,
+        content={
+            'name': conn_name,
+            'endpoint_uri': sender_endpoint_uri,
+            'endpoint_key': endpoint_key,
+            'endpoint_did': sender_did_str,
+            'history': msg
+        }
+    )
+
+
+async def send_response(msg: Message, agent) -> Message:
+    receiver_endpoint_uri = msg.content['endpoint_uri']
+    receiver_endpoint_key = msg.content['endpoint_key']
+    receiver_endpoint_did = msg.content['endpoint_did']
+    receiver_endpoint_did_bytes = str_to_bytes(receiver_endpoint_did)
+
+    inner_msg = Message(
+        type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/response",
+        to="did:sov:ABC",
+        content=serialize_bytes_json(await crypto.auth_crypt(agent.wallet_handle, agent.endpoint_vk, receiver_endpoint_key, receiver_endpoint_did_bytes))
+    )
+
+    outer_msg = Message(
+        type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/routing/1.0/forward",
+        to="ABC",
+        content=inner_msg
+    )
+
+    serialized_outer_msg = Serializer.pack(outer_msg)
+
+    serialized_outer_msg_bytes = str_to_bytes(serialized_outer_msg)
+
+    all_message = Message(
+        content=serialize_bytes_json(await crypto.anon_crypt(receiver_endpoint_key,
+                                                             serialized_outer_msg_bytes))
+    )
+
+    serialized_msg = Serializer.pack(all_message)
+
     async with aiohttp.ClientSession() as session:
-        async with session.post(endpoint, data=envelope) as resp:
+        async with session.post(receiver_endpoint_uri, data=serialized_msg) as resp:
             print(resp.status)
             print(await resp.text())
+
+    meta = json.loads(await did.get_did_metadata(agent.wallet_handle,
+                                                 receiver_endpoint_did))
+    conn_name = meta['conn_name']
+
+    return Message(type=UI_NEW.RESPONSE_SENT,
+                   id=agent.ui_token,
+                   content={'name': conn_name})
+
+
+async def response_received(msg: Message, agent) -> Message:
+    message_bytes = msg.content.encode('utf-8')
+    message_bytes = base64.b64decode(message_bytes)
+
+    sender_key_str, sender_did_bytes = await crypto.auth_decrypt(agent.wallet_handle, agent.endpoint_vk, message_bytes)
+
+    sender_did_str = bytes_to_str(sender_did_bytes)
+    meta = json.loads(await did.get_did_metadata(agent.wallet_handle,
+                                                 sender_did_str))
+    conn_name = meta['conn_name']
+
+    return Message(
+        type=UI_NEW.RESPONSE_RECEIVED,
+        id=agent.ui_token,
+        content={'name': conn_name,
+                 'history': msg}
+    )
+
+
