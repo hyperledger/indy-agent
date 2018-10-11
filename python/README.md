@@ -39,7 +39,7 @@ To this point I hope you have properly launched the agents.
 To do the DEMO (**using both 1 and 2 ways of running the agent**):
 * In agent A browser tab type: `Alice` and any password.
 * In agent B browser tab type: `Bob` and any password.
-* In agent A browser tab click button send connection offer. Type `AliceToBobConnection` and ip-address of the second agent (in my case it was 172.17.0.3:8095), click `send connection offer`
+* In agent A browser tab click button send connection offer. Type `AliceToBobConnection` and ip-address of the second agent with the /offer route (in my case it was 172.17.0.3:8095/offer), click `send connection offer`
 * In agent B browser tab click on the `view` button and check the received message. Click `send request`
 * In agent A browser tab click on the `view` button and check the received message. Click `send response`
 * In agent B browser tab click on the `view` button and check the received message.
