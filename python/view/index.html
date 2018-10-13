@@ -17,7 +17,7 @@
   </head>
 
   <body>
-
+{% raw %}
     <header>
       <!-- Fixed navbar -->
       <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
@@ -41,9 +41,6 @@
 
         <ul class="nav navbar-nav navbar-right">
             <li>
-                <div class="btn-nav" id="btn_send_invite" style="display: none">
-                    <button type="button" class="btn btn-primary btn-small navbar-btn" data-toggle="modal" data-target="#send_req_modal">Send connection offer</button>
-                </div>
             </li>
         </ul>
 
@@ -54,24 +51,25 @@
     <main role="main" class="container">
 
         <!-- credentials page -->
-        <div id="credentials" class="tab" style="display:none;">
+        <div id="credentials" class="tab" v-if="tab_active">
             <p>My Credentials</p>
         </div>
 
+
         <!-- wallet create page -->
-        <div id="login" class="tab" style="display:none;">
+        <div id="login" class="tab" v-if="tab_active">
             <form class="form-signin">
                 <h2 class="form-signin-heading">Wallet Credentials</h2>
                 <label for="inputEmail" class="sr-only">Wallet Name</label>
-                <input id="agent_name" type="text" name="name" id="inputEmail" class="form-control" placeholder="Enter your name" required autofocus>
+                <input id="agent_name" v-model="agent_name" type="text" name="name" id="inputEmail" class="form-control" placeholder="Enter your name" required autofocus>
                 <label for="inputPassword" class="sr-only">Passphrase</label>
-                <input id="passphrase" type="password" name="passphrase" id="inputPassword" class="form-control" placeholder="Passphrase" required>
-                <button id="agent_init" class="btn btn-lg btn-primary btn-block" type="button">Open and Create</button>
+                <input id="passphrase" v-model="passphrase" type="password" name="passphrase" id="inputPassword" class="form-control" placeholder="Passphrase" required>
+                <button id="agent_init" v-on:click="initialize" class="btn btn-lg btn-primary btn-block" type="button">Open and Create</button>
             </form>
         </div>
 
         <!-- relationships page -->
-        <div id="relationships" class="tab" >
+        <div id="relationships" class="tab" v-if="tab_active">
             <!-- Modal -->
             <div class="modal fade" id="send_req_modal" tabindex="-1" role="dialog" aria-labelledby="send_req_modal_label" aria-hidden="true">
                 <div class="modal-dialog" role="document">
@@ -90,18 +88,18 @@
                                 </p>
                                 <div class="form-group">
                                     <label for="send_name">Connection Name</label>
-                                    <input type="text" class="form-control" id="send_name" aria-describedby="emailHelp" placeholder="Name">
+                                    <input type="text" v-model="new_connection_offer.name" class="form-control" id="send_name" aria-describedby="emailHelp" placeholder="Name">
                                     <small id="emailHelp" class="form-text text-muted">This will name will be used to identify the connection.</small>
                                 </div>
                                 <div class="form-group">
                                     <label for="send_endpoint">Endpoint</label>
-                                    <input type="text" class="form-control" id="send_endpoint" placeholder="Endpoint">
+                                    <input type="text" v-model="new_connection_offer.endpoint" class="form-control" id="send_endpoint" placeholder="Endpoint">
                                 </div>
                             </form>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                            <button id="send_offer" type="button" class="btn btn-primary" data-dismiss="modal">Send Offer</button>
+                            <button id="send_offer" v-on:click="send_invite" type="button" class="btn btn-primary" data-dismiss="modal">Send Offer</button>
                         </div>
                     </div>
                 </div>
@@ -109,23 +107,42 @@
 
             <div id='conns-details-container' class="row">
                 <div class="col-sm" id="conns">
-                    <h3 id="agent_name_header" class="text-center">Agent's name: </h3>
+                    <h3 id="agent_name_header" class="text-center">Agent's name: {{agent_name}}</h3>
                 </div>
             </div>
 
+
+            <button type="button" class="btn btn-primary btn-small navbar-btn" data-toggle="modal" data-target="#send_req_modal">Send connection offer</button>
+
+
             <table class="table table-bordered" id="conns-new">
                 <thead>
-                    <th scope="col">#</th>
-                    <th scope="col">Title</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">History</th>
-                    <th scope="col">Actions</th>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">History</th>
+                        <th scope="col">Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
+                    <tr v-for="c in connections">
+                        <td></td>
+                        <td>{{ c.name }}</td>
+                        <td>{{ c.status }}</td>
+                        <td>
+                            <button type="button" class="btn btn-info" v-on:click="display_history(c)">View</button>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-warning" v-if="c.status == 'Invite Received'" v-on:click="send_request(c.invitation_msg)">Send Request</button>
+                            <button type="button" class="btn btn-warning" v-if="c.status == 'Request Received'" v-on:click="send_response(c.connecton_request)">Send Response</button>
+                        </td>
+
+                    </tr>
                 </tbody>
             </table>
 
-            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
               <div class="modal-dialog" role="document">
                 <div class="modal-content">
                   <div class="modal-header">
@@ -135,9 +152,13 @@
                     </button>
                   </div>
                   <div class="modal-body">
-                    <pre class="prettyprint lang-py" id="history_body">
-                      ...
-                    </pre>
+                    <div v-for="h in history_view">
+                        <h3>{{h.date}}</h3>
+                        <pre class="prettyprint lang-py" id="history_body">
+                          {{h.msg}}
+                        </pre>
+                    </div>
+
                   </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -148,7 +169,7 @@
 
         </div>
     </main>
-
+{% endraw %}
     <footer class="footer">
       <div class="container">
           <span class="text-muted">Your UI token is <span id="ui_token">{{ ui_token }}</span></span>
@@ -161,6 +182,9 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+
+    <!-- vue.js development version, includes helpful console warnings -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 
     <script src="/res/indy-agent.js"></script>
     <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
