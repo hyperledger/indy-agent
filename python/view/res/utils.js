@@ -1,15 +1,8 @@
-function removeElementById(id) {
-    // removes element from DOM by its ID
-    var element = document.getElementById(id);
-    element.parentNode.removeChild(element);
-}
-
-function removeRow(connName) {
-    removeElementById(connName + '_row');
-}
-
 function displayObject(obj) {
     return JSON.stringify(obj, null, 4); // beautiful indented obj.
+}
+function history_format(msg_content){
+    return {'date':getTodayDate(), 'msg':displayObject(msg.content)};
 }
 
 function getTodayDate() {
@@ -26,12 +19,3 @@ function getTodayDate() {
 
     return currentDate;
 }
-
-function showTab(id) {
-        let i;
-        let x = document.getElementsByClassName("tab");
-        for (i = 0; i < x.length; i++) {
-            x[i].style.display = "none";
-        }
-        document.getElementById(id).style.display = "block";
-    }

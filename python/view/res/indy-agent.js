@@ -1,10 +1,5 @@
-(function(){
 
     const TOKEN = document.getElementById("ui_token").innerText;
-
-    var sendInviteButton = document.getElementById("btn_send_invite");
-
-    connectionsTable = document.getElementById("conns-new");
 
     const MESSAGE_TYPES = {
         CONN_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/",
@@ -35,9 +30,9 @@
     var msg_router = {
         routes: [],
         route:
-            function(socket, msg) {
+            function(msg) {
                 if (msg.type in this.routes) {
-                    this.routes[msg.type](socket, msg);
+                    this.routes[msg.type](msg);
                 } else {
                     console.log('Message from server without registered route: ' + JSON.stringify(msg));
                 }
@@ -49,140 +44,174 @@
     };
     // }}}
 
-    // UI Agent {{{
-    var ui_agent = {
-        connect:
-        function (socket) {
-            socket.send(JSON.stringify(
-                {
-                    type: UI_MESSAGE.STATE_REQUEST,
-                    id: TOKEN,
-                    content: null
-                }
-            ));
+    // this is shared data among all the vue instances for simplicity.
+    var ui_data = {
+        agent_name: '',
+        passphrase: '',
+        current_tab: 'login',
+        new_connection_offer: {
+            name: "",
+            endpoint: ""
         },
-        update:
-        function (socket, msg) {
-            state = msg.content;
-            if (state.initialized === false) {
-                showTab('login');
-            } else {
-                document.getElementById('agent_name').value = state.agent_name;
-                document.getElementById('agent_name_header').innerHTML = "Agent's name: " + state.agent_name;
-                showTab('relationships');
+        connections: [],
+        history_view: []
+    };
+
+    var ui_credentials = new Vue({
+        el: '#credentials',
+        data: ui_data,
+        computed: {
+            tab_active: function(){
+                return this.current_tab == "credentials";
+            }
+        }
+    });
+
+    var ui_relationships = new Vue({
+        el: '#relationships',
+        data: ui_data,
+        computed: {
+            tab_active: function(){
+                return this.current_tab == "relationships";
             }
         },
-        inititialize:
-        function (socket) {
-            init_message = {
-                type: UI_MESSAGE.INITIALIZE,
-                id: TOKEN,
-                content: {
-                    name: document.getElementById('agent_name').value,
-                    passphrase: document.getElementById('passphrase').value
+        methods: {
+            send_invite: function () {
+                msg = {
+                    type: UI_MESSAGE.SEND_INVITE,
+                    id: TOKEN,
+                    content: {
+                        name: this.new_connection_offer.name,
+                        endpoint: this.new_connection_offer.endpoint
+                    }
+                };
+                socket.send(JSON.stringify(msg));
+            },
+            invite_sent: function (msg) {
+                this.connections.push({
+                    name: msg.content.name,
+                    status: "Invite Sent",
+                    history: []
+                });
+            },
+            invite_received: function (msg) {
+                this.connections.push({
+                    name: msg.content.name,
+                    invitation_msg: msg.content,
+                    status: "Invite Received",
+                    history: [history_format(msg.content.history)]
+                });
+            },
+
+            send_request: function (invitation_msg) {
+                msg = {
+                    type: UI_MESSAGE.SEND_REQUEST,
+                    id: TOKEN,
+                    content: {
+                            name: invitation_msg.name,
+                            endpoint: invitation_msg.endpoint.url,
+                            key: invitation_msg.endpoint.verkey,
+                    }
+                };
+                socket.send(JSON.stringify(msg));
+            },
+            request_sent: function (msg) {
+                var c = this.connections.find(function(x){return x.name === msg.content.name;});
+                c.status = "Request Sent";
+            },
+            request_received: function (msg) {
+
+                var c = this.connections.find(function(x){return x.name === msg.content.name;});
+                c.status = "Request Received";
+                c.connecton_request = msg.content;
+                c.history.push(history_format(msg.content.history));
+
+            },
+            send_response: function (prevMsg) {
+                msg = {
+                    type: UI_MESSAGE.SEND_RESPONSE,
+                    id: TOKEN,
+                    content: {
+                            name: prevMsg.name,
+                            endpoint_key: prevMsg.endpoint_key,
+                            endpoint_uri: prevMsg.endpoint_uri,
+                            endpoint_did: prevMsg.endpoint_did
+                    }
+                };
+                socket.send(JSON.stringify(msg));
+            },
+            response_sent: function (msg) {
+                var c = this.connections.find(function(x){return x.name === msg.content.name;});
+                c.status = "Response sent";
+                c.history.push(history_format(msg.content));
+
+            },
+            response_received: function (msg) {
+                var c = this.connections.find(function(x){return x.name === msg.content.name;});
+                c.status = "Response received";
+                c.history.push(history_format(msg.content.history));
+            },
+            display_history: function(connection){
+                this.history_view = connection.history;
+                console.log(this.history_view);
+                $('#historyModal').modal({});
+            }
+        }
+    });
+
+    // UI Agent {{{
+    var ui_agent = new Vue({
+        el: '#login',
+        data: ui_data,
+        computed: {
+            tab_active: function(){
+                return this.current_tab == "login";
+            }
+        },
+        methods: {
+            initialize: function () {
+                init_message = {
+                    type: UI_MESSAGE.INITIALIZE,
+                    id: TOKEN,
+                    content: {
+                        name: this.agent_name,
+                        passphrase: this.passphrase
+                    }
+                };
+                socket.send(JSON.stringify(init_message));
+            },
+            connect: function(){
+                socket.send(JSON.stringify(
+                    {
+                        type: UI_MESSAGE.STATE_REQUEST,
+                        id: TOKEN,
+                        content: null
+                    }
+                ));
+            },
+            update: function (msg) {
+                state = msg.content;
+                if (state.initialized === false) {
+                    this.current_tab = 'login';
+                } else {
+                    this.agent_name = state.agent_name;
+                    this.current_tab = 'relationships';
                 }
-            };
-            socket.send(JSON.stringify(init_message));
-        },
-    };
-    // }}}
+            }
+        }
+    });
 
 
-    // Connections {{{
-    var connections = {
-        send_invite:
-        function (socket) {
-            msg = {
-                type: UI_MESSAGE.SEND_INVITE,
-                id: TOKEN,
-                content: {
-                    name: document.getElementById('send_name').value,
-                    endpoint: document.getElementById('send_endpoint').value
-                }
-            };
-            socket.send(JSON.stringify(msg));
-
-        },
-
-        invite_sent:
-        function (socket, msg) {
-            displayConnection(msg.content.name, [], 'Invite sent');
-        },
-
-        invite_received:
-        function (socket, msg) {
-            document.getElementById("history_body").innerText = getTodayDate() + ": " + displayObject(msg.content.history);
-
-            displayConnection(msg.content.name, [['Send Request', connections.send_request, socket, msg]], 'Invite received');
-        },
-
-        send_request:
-        function (socket, prevMsg) {
-            msg = {
-                type: UI_MESSAGE.SEND_REQUEST,
-                id: TOKEN,
-                content: {
-                        name: prevMsg.content.name,
-                        endpoint: prevMsg.content.endpoint.url,
-                        key: prevMsg.content.endpoint.verkey,
-                }
-            };
-            socket.send(JSON.stringify(msg));
-
-        },
-
-        request_sent:
-        function (socket, msg) {
-            removeRow(msg.content.name);
-            displayConnection(msg.content.name, [], 'Request sent');
-        },
-
-        request_received:
-        function (socket, msg) {
-            document.getElementById("history_body").innerText = getTodayDate() + ": " + displayObject(msg.content.history);
-            removeRow(msg.content.name);
-            displayConnection(msg.content.name, [['Send response', connections.send_response, socket, msg]], 'Request received');
-        },
-
-        send_response:
-        function (socket, prevMsg) {
-            msg = {
-                type: UI_MESSAGE.SEND_RESPONSE,
-                id: TOKEN,
-                content: {
-                        name: prevMsg.content.name,
-                        endpoint_key: prevMsg.content.endpoint_key,
-                        endpoint_uri: prevMsg.content.endpoint_uri,
-                        endpoint_did: prevMsg.content.endpoint_did
-                }
-            };
-            socket.send(JSON.stringify(msg));
-        },
-
-        response_sent:
-        function (socket, msg) {
-            removeRow(msg.content.name);
-            displayConnection(msg.content.name, [], 'Response sent');
-        },
-
-        response_received:
-        function (socket, msg) {
-            document.getElementById("history_body").innerText += getTodayDate() + ": " + displayObject(msg.content.history);
-            removeRow(msg.content.name);
-            displayConnection(msg.content.name, [], 'Response received');
-        },
-
-    };
     // }}}
 
     // Message Routes {{{
     msg_router.register(UI_MESSAGE.STATE, ui_agent.update);
-    msg_router.register(UI_MESSAGE.INVITE_SENT, connections.invite_sent);
-    msg_router.register(UI_MESSAGE.INVITE_RECEIVED, connections.invite_received);
-    msg_router.register(UI_MESSAGE.REQUEST_SENT, connections.request_sent);
-    msg_router.register(CONN_MESSAGE.RESPONSE_RECEIVED, connections.response_received);
-    msg_router.register(CONN_MESSAGE.REQUEST_RECEIVED, connections.request_received);
-    msg_router.register(UI_MESSAGE.RESPONSE_SENT, connections.response_sent);
+    msg_router.register(UI_MESSAGE.INVITE_SENT, ui_relationships.invite_sent);
+    msg_router.register(UI_MESSAGE.INVITE_RECEIVED, ui_relationships.invite_received);
+    msg_router.register(UI_MESSAGE.REQUEST_SENT, ui_relationships.request_sent);
+    msg_router.register(CONN_MESSAGE.RESPONSE_RECEIVED, ui_relationships.response_received);
+    msg_router.register(CONN_MESSAGE.REQUEST_RECEIVED, ui_relationships.request_received);
+    msg_router.register(UI_MESSAGE.RESPONSE_SENT, ui_relationships.response_sent);
 
     // }}}
 
@@ -191,70 +220,12 @@
 
     // Connection opened
     socket.addEventListener('open', function(event) {
-        ui_agent.connect(socket);
+        ui_agent.connect();
     });
 
     // Listen for messages
     socket.addEventListener('message', function (event) {
         console.log('Routing: ' + event.data);
         msg = JSON.parse(event.data);
-        msg_router.route(socket, msg);
+        msg_router.route(msg);
     });
-
-    // DOM Event Listeners {{{
-    // Need reference to socket so must be after socket creation
-    document.getElementById('send_offer').addEventListener(
-        "click",
-        function (event) { connections.send_invite(socket); }
-    );
-
-    document.getElementById('agent_init').addEventListener(
-        "click",
-        function (event) {
-            ui_agent.inititialize(socket);
-            sendInviteButton.style.display = "block";
-        }
-    );
-
-    function displayConnection(connName, actions, status) {
-        let row = connectionsTable.insertRow();
-        row.id = connName + "_row";
-        let cell1 = row.insertCell();
-        let cell2 = row.insertCell();
-        let cell3 = row.insertCell();
-        let cell4 = row.insertCell();
-        let cell5 = row.insertCell();
-
-        let history_btn = document.createElement("button");
-        history_btn.id = connName + "_history";
-        history_btn.type = "button";
-        history_btn.className = "btn btn-info";
-        history_btn.textContent = "View";
-        history_btn.setAttribute('data-toggle', 'modal');
-        history_btn.setAttribute('data-target', '#exampleModal');
-
-        actions.forEach(function (item, i, actions) {
-            let butn = document.createElement("button");
-            butn.id = connName + "_" + item[0];
-            butn.type = "button";
-            butn.className = "btn btn-warning   ";
-            butn.textContent = item[0];
-            butn.addEventListener(
-                "click",
-                function (event) {
-                     item[1](item[2], item[3]);
-                }
-            );
-            cell5.appendChild(butn);
-
-        });
-
-        cell1.innerHTML = "#";
-        cell2.innerHTML = connName;
-        cell3.innerHTML = status;
-        cell4.appendChild(history_btn);
-    }
-
-    // }}}
-
-})();
