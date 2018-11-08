@@ -33,6 +33,11 @@ from model import Message
 
 if len(sys.argv) == 2 and str.isdigit(sys.argv[1]):
     PORT = int(sys.argv[1])
+    # args would be port agent1(name) passphrase, cont'd
+elif len(sys.argv) == 4 and str.isdigit(sys.argv[1]):
+    PORT = int(sys.argv[1])
+    AGENT1WALLETNAME = int(sys.argv[2])
+    AGENT1WALLETPASS = int(sys.argv[3])
 else:
     PORT = 8080
 
