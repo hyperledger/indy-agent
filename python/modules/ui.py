@@ -15,6 +15,14 @@ class Ui(Module):
         self.router = SimpleRouter()
         self.router.register(UI.STATE_REQUEST, self.ui_connect)
         self.router.register(UI.INITIALIZE, self.initialize_agent)
+        # self.router.register(CLI.STATE_REQUEST, self.initialize_agent)
+        # if (!self.agent.initialized) {
+            # self.router.register(UI.STATE_REQUEST, self.ui_connect)
+        # }
+        # else (
+            # self.router.register(UI.INITIALIZE, self.initialize_agent)
+        # )
+
 
     async def route(self, msg: Message) -> Message:
         return await self.router.route(msg)
@@ -33,11 +41,21 @@ class Ui(Module):
     async def initialize_agent(self, msg):
         """ Initialize agent.
         """
+        if self.agent.initialized == True then return
         data = msg.content
-        self.agent.owner = data['name']
+        # print('---------' +msg.content + 'content--------------')
+        agent_name = data['name']
         passphrase = data['passphrase']
+        try:
+            await configure_wallet(agent_name, passphrase)
+        except Exception as e:
+            print(e)
 
+        return await self.ui_connect(None)
+
+    async def configure_wallet(agent_name, passphrase):
         #set wallet name from msg contents
+        self.agent.owner = agent_name
         wallet_name = '%s-wallet' % self.agent.owner
 
         wallet_config = json.dumps({"id": wallet_name})
@@ -59,9 +77,7 @@ class Ui(Module):
 
         (_, self.agent.endpoint_vk) = await did.create_and_store_my_did(
             self.agent.wallet_handle, "{}")
-
         self.agent.initialized = True
-        return await self.ui_connect(None)
 
 @aiohttp_jinja2.template('index.html')
 async def root(request):

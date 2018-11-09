@@ -17,7 +17,7 @@ import base64
 import json
 
 from aiohttp import web
-from indy import crypto, did, error, IndyError
+from indy import crypto, did, error, IndyError, wallet
 
 from modules.connection import Connection
 from modules.ui import Ui
@@ -36,8 +36,9 @@ if len(sys.argv) == 2 and str.isdigit(sys.argv[1]):
     # args would be port agent1(name) passphrase, cont'd
 elif len(sys.argv) == 4 and str.isdigit(sys.argv[1]):
     PORT = int(sys.argv[1])
-    AGENT1WALLETNAME = int(sys.argv[2])
-    AGENT1WALLETPASS = int(sys.argv[3])
+    AGENTWALLETNAME = int(sys.argv[2])
+    AGENTWALLETPASS = int(sys.argv[3])
+    AGENTINIT = True
 else:
     PORT = 8080
 
