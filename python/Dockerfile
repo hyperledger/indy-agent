@@ -51,9 +51,11 @@ COPY . /app
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
 ARG PORT
+ARG WALLETNAME
+ARG WALLETPASS
 
 ENV PORT=${PORT}
 
 EXPOSE $PORT
 
-CMD python3.6 indy-agent.py $PORT
+CMD python3.6 indy-agent.py $PORT $WALLETNAME $WALLETPASS

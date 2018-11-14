@@ -30,15 +30,15 @@ from model import Agent
 from message_types import UI, CONN, CONN_UI
 from model import Message
 
-
+    #no cli input of walletname and passphrase
 if len(sys.argv) == 2 and str.isdigit(sys.argv[1]):
     PORT = int(sys.argv[1])
     # args would be port agent1(name) passphrase, cont'd
 elif len(sys.argv) == 4 and str.isdigit(sys.argv[1]):
     PORT = int(sys.argv[1])
-    AGENTWALLETNAME = int(sys.argv[2])
-    AGENTWALLETPASS = int(sys.argv[3])
-    AGENTINIT = True
+    WALLETNAME = str(sys.argv[2])
+    WALLETPASS = str(sys.argv[3])
+    AGENTINITINCLI = True
 else:
     PORT = 8080
 
@@ -202,6 +202,8 @@ async def ui_event_process(agent):
 
 try:
     print('===== Starting Server on: http://localhost:{} ====='.format(PORT))
+    print('Your command line wallet name is'.format(WALLETNAME))
+    print('Your command line wallet passphrase is'.format(WALLETPASS))
     print('Your UI Token is: {}'.format(UI_TOKEN))
     LOOP.create_task(SERVER.start())
     LOOP.create_task(conn_process(AGENT))

@@ -41,9 +41,9 @@ class Ui(Module):
     async def initialize_agent(self, msg):
         """ Initialize agent.
         """
-        if self.agent.initialized == True then return
+        if self.agent.initialized is True:
+            return
         data = msg.content
-        # print('---------' +msg.content + 'content--------------')
         agent_name = data['name']
         passphrase = data['passphrase']
         try:
@@ -64,7 +64,7 @@ class Ui(Module):
         # pylint: disable=bare-except
         # TODO: better handle potential exceptions.
         try:
-            await wallet.create_wallet(wallet_config, wallet_credentials)
+            await wallet.create_logwallet(wallet_config, wallet_credentials)
         except Exception as e:
             print(e)
 
@@ -81,8 +81,10 @@ class Ui(Module):
 
 @aiohttp_jinja2.template('index.html')
 async def root(request):
+    print(request)
     agent = request.app['agent']
     agent.offer_endpoint = request.url.scheme + '://' + request.url.host
+    print(agent.offer_endpoint)
     agent.endpoint = request.url.scheme + '://' + request.url.host
     if request.url.port is not None:
         agent.endpoint += ':' + str(request.url.port) + '/indy'
