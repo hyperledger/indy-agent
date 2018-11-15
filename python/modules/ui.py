@@ -15,14 +15,6 @@ class Ui(Module):
         self.router = SimpleRouter()
         self.router.register(UI.STATE_REQUEST, self.ui_connect)
         self.router.register(UI.INITIALIZE, self.initialize_agent)
-        # self.router.register(CLI.STATE_REQUEST, self.initialize_agent)
-        # if (!self.agent.initialized) {
-            # self.router.register(UI.STATE_REQUEST, self.ui_connect)
-        # }
-        # else (
-            # self.router.register(UI.INITIALIZE, self.initialize_agent)
-        # )
-
 
     async def route(self, msg: Message) -> Message:
         return await self.router.route(msg)
@@ -47,13 +39,13 @@ class Ui(Module):
         agent_name = data['name']
         passphrase = data['passphrase']
         try:
-            await configure_wallet(agent_name, passphrase)
+            await self.configure_wallet(agent_name, passphrase)
         except Exception as e:
             print(e)
 
         return await self.ui_connect(None)
 
-    async def configure_wallet(agent_name, passphrase):
+    async def configure_wallet(self, agent_name, passphrase):
         #set wallet name from msg contents
         self.agent.owner = agent_name
         wallet_name = '%s-wallet' % self.agent.owner
@@ -64,7 +56,7 @@ class Ui(Module):
         # pylint: disable=bare-except
         # TODO: better handle potential exceptions.
         try:
-            await wallet.create_logwallet(wallet_config, wallet_credentials)
+            await wallet.create_wallet(wallet_config, wallet_credentials)
         except Exception as e:
             print(e)
 
