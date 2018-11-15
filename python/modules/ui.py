@@ -33,11 +33,21 @@ class Ui(Module):
     async def initialize_agent(self, msg):
         """ Initialize agent.
         """
+        if self.agent.initialized is True:
+            return
         data = msg.content
-        self.agent.owner = data['name']
+        agent_name = data['name']
         passphrase = data['passphrase']
+        try:
+            await self.configure_wallet(agent_name, passphrase)
+        except Exception as e:
+            print(e)
 
+        return await self.ui_connect(None)
+
+    async def configure_wallet(self, agent_name, passphrase):
         #set wallet name from msg contents
+        self.agent.owner = agent_name
         wallet_name = '%s-wallet' % self.agent.owner
 
         wallet_config = json.dumps({"id": wallet_name})
@@ -59,14 +69,14 @@ class Ui(Module):
 
         (_, self.agent.endpoint_vk) = await did.create_and_store_my_did(
             self.agent.wallet_handle, "{}")
-
         self.agent.initialized = True
-        return await self.ui_connect(None)
 
 @aiohttp_jinja2.template('index.html')
 async def root(request):
+    print(request)
     agent = request.app['agent']
     agent.offer_endpoint = request.url.scheme + '://' + request.url.host
+    print(agent.offer_endpoint)
     agent.endpoint = request.url.scheme + '://' + request.url.host
     if request.url.port is not None:
         agent.endpoint += ':' + str(request.url.port) + '/indy'

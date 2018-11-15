@@ -17,7 +17,7 @@ import base64
 import json
 
 from aiohttp import web
-from indy import crypto, did, error, IndyError
+from indy import crypto, did, error, IndyError, wallet
 
 from modules.connection import Connection
 from modules.ui import Ui
@@ -31,8 +31,20 @@ from message_types import UI, CONN, CONN_UI
 from model import Message
 
 
+AGENTINITINCLI = False
+    #no cli input of walletname and passphrase
 if len(sys.argv) == 2 and str.isdigit(sys.argv[1]):
     PORT = int(sys.argv[1])
+    print("Option 1 -= UI")
+    # args would be port agent1(name) passphrase, cont'd
+
+elif len(sys.argv) == 4 and str.isdigit(sys.argv[1]):
+    print("Option 2 - cli")
+    PORT = int(sys.argv[1])
+    WALLETNAME = str(sys.argv[2])
+    WALLETPASS = str(sys.argv[3])
+    AGENTINITINCLI = True
+
 else:
     PORT = 8080
 
@@ -75,6 +87,39 @@ LOOP.run_until_complete(RUNNER.setup())
 
 SERVER = web.TCPSite(runner=RUNNER, port=PORT)
 
+async def connect_wallet(agent_name, passphrase):
+    #set wallet name from msg contents
+
+    AGENT['agent'].owner = agent_name
+    wallet_name = '%s-wallet' % AGENT['agent'].owner
+
+    wallet_config = json.dumps({"id": wallet_name})
+    wallet_credentials = json.dumps({"key": passphrase})
+
+    # pylint: disable=bare-except
+    # TODO: better handle potential exceptions.
+    try:
+        await wallet.create_wallet(wallet_config, wallet_credentials)
+    except Exception as e:
+        print(e)
+
+    try:
+        AGENT['agent'].wallet_handle = await wallet.open_wallet(wallet_config,
+                                                       wallet_credentials)
+    except Exception as e:
+        print(e)
+        print("Could not open wallet!")
+    AGENT['agent'].initialized = True
+    (_, AGENT['agent'].endpoint_vk) = await did.create_and_store_my_did(
+        AGENT['agent'].wallet_handle, "{}")
+
+
+if AGENTINITINCLI:
+    try:
+        LOOP.run_until_complete(connect_wallet(WALLETNAME, WALLETPASS))
+        print("Connected to wallet via command line args:{}".format(WALLETNAME))
+    except Exception as e:
+        print(e)
 
 async def conn_process(agent):
     conn_router = agent['conn_router']
@@ -165,7 +210,6 @@ async def message_process(agent):
 
         if res is not None:
             await ui_event_queue.send(Serializer.pack(res))
-
 
 async def ui_event_process(agent):
     ui_router = agent['ui_router']
