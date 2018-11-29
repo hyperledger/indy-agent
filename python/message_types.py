@@ -33,6 +33,14 @@ class CONN_UI:
     SEND_MESSAGE = BASE + "send_message"
     MESSAGE_SENT = BASE + "message_sent"
 
+class ADMIN_WALLETCONNECTION:
+    FAMILY = "admin_walletconnection"
+    VERSION = "1.0"
+    BASE = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/" + FAMILY + "/" + VERSION + "/"
+
+    CONNECT = BASE + "connect"
+    DISCONNECT = BASE + "disconnect"
+    USER_ERROR = BASE + "user_error"
 
 class CONN:
     FAMILY = "connections"

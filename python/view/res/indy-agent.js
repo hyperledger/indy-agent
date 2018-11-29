@@ -4,14 +4,20 @@
     const MESSAGE_TYPES = {
         CONN_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/",
         CONN_UI_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections_ui/1.0/",
-        UI_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/ui/1.0/"
+        UI_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/ui/1.0/",
+        ADMIN_WALLETCONNECTION_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin_walletconnection/1.0/"
     };
 
     const UI_MESSAGE = {
         STATE: MESSAGE_TYPES.UI_BASE + "state",
         STATE_REQUEST: MESSAGE_TYPES.UI_BASE + "state_request",
         INITIALIZE: MESSAGE_TYPES.UI_BASE + "initialize",
+    };
 
+    const ADMIN_WALLETCONNECTION = {
+        CONNECT: MESSAGE_TYPES.ADMIN_WALLETCONNECTION_BASE + 'connect',
+        DISCONNECT: MESSAGE_TYPES.ADMIN_WALLETCONNECTION_BASE + 'disconnect',
+        USER_ERROR: MESSAGE_TYPES.ADMIN_WALLETCONNECTION_BASE + ''
     };
 
     const CONN_UI_MESSAGE = {
@@ -85,13 +91,12 @@
             send_invite: function () {
                 msg = {
                     type: CONN_UI_MESSAGE.SEND_INVITE,
-                    id: TOKEN,
                     content: {
                         name: this.new_connection_offer.name,
                         endpoint: this.new_connection_offer.endpoint
                     }
                 };
-                socket.send(JSON.stringify(msg));
+                sendMessage(msg);
             },
             invite_sent: function (msg) {
                 this.connections.push({
@@ -112,14 +117,13 @@
             send_request: function (invitation_msg) {
                 msg = {
                     type: CONN_UI_MESSAGE.SEND_REQUEST,
-                    id: TOKEN,
                     content: {
                             name: invitation_msg.name,
                             endpoint: invitation_msg.endpoint.url,
                             key: invitation_msg.connection_key,
                     }
                 };
-                socket.send(JSON.stringify(msg));
+                sendMessage(msg);
             },
             request_sent: function (msg) {
                 var c = this.get_connection_by_name(msg.content.name);
@@ -135,7 +139,6 @@
             send_response: function (prevMsg) {
                 msg = {
                     type: CONN_UI_MESSAGE.SEND_RESPONSE,
-                    id: TOKEN,
                     content: {
                             name: prevMsg.name,
                             // endpoint_key: prevMsg.endpoint_key,
@@ -143,7 +146,7 @@
                             endpoint_did: prevMsg.endpoint_did
                     }
                 };
-                socket.send(JSON.stringify(msg));
+                sendMessage(msg);
             },
             response_sent: function (msg) {
                 var c = this.get_connection_by_name(msg.content.name);
@@ -165,14 +168,13 @@
             send_message: function (c) {
                 msg = {
                     type: CONN_UI_MESSAGE.SEND_MESSAGE,
-                    id: TOKEN,
                     content: {
                             name: c.name,
                             message: 'Hello, world!',
                             their_did: c.their_did
                     }
                 };
-                socket.send(JSON.stringify(msg));
+                sendMessage(msg);
             },
             message_sent: function (msg) {
                 var c = this.get_connection_by_name(msg.content.name);
@@ -212,25 +214,20 @@
             }
         },
         methods: {
-            initialize: function () {
-                init_message = {
-                    type: UI_MESSAGE.INITIALIZE,
-                    id: TOKEN,
-                    content: {
-                        name: this.agent_name,
-                        passphrase: this.passphrase
-                    }
-                };
-                socket.send(JSON.stringify(init_message));
+            walletconnnect: function () {
+                sendMessage({
+                    type: ADMIN_WALLETCONNECTION.CONNECT,
+                    name: this.agent_name,
+                    passphrase: this.passphrase,
+                });
             },
             connect: function(){
-                socket.send(JSON.stringify(
+                sendMessage(
                     {
                         type: UI_MESSAGE.STATE_REQUEST,
-                        id: TOKEN,
                         content: null
                     }
-                ));
+                );
             },
             update: function (msg) {
                 state = msg.content;
@@ -274,3 +271,11 @@
         msg = JSON.parse(event.data);
         msg_router.route(msg);
     });
+
+    function sendMessage(msg){
+        //decorate message as necessary
+        msg.ui_token = TOKEN; // deprecated
+        msg.id = (new Date()).getTime(); // ms since epoch
+        //TODO: Encode properly
+        socket.send(JSON.stringify(msg));
+    }

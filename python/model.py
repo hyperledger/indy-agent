@@ -24,6 +24,7 @@ class Agent:
         self.pool_handle = None
         self.ui_socket = None
         self.initialized = False
+        self.modules = []
 
 
 class Message(object):

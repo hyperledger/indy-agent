@@ -56,12 +56,12 @@
         </div>
 
 
-        <!-- wallet create page -->
+        <!-- wallet signin page -->
         <div id="login" class="tab" v-if="tab_active">
-            <form class="form-signin" v-on:submit.prevent="initialize">
+            <form class="form-signin" v-on:submit.prevent="walletconnnect">
                 <h2 class="form-signin-heading">Wallet Credentials</h2>
                 <label for="inputEmail" class="sr-only">Wallet Name</label>
-                <input id="agent_name" v-model="agent_name" type="text" name="name" id="inputEmail" class="form-control" placeholder="Enter your name" required autofocus>
+                <input id="agent_name" v-model="agent_name" type="text" name="name" id="inputEmail" class="form-control" placeholder="Enter your wallet name" required autofocus>
                 <label for="inputPassword" class="sr-only">Passphrase</label>
                 <input id="passphrase" v-model="passphrase" type="password" name="passphrase" id="inputPassword" class="form-control" placeholder="Passphrase" required>
                 <input id="agent_init" class="btn btn-lg btn-primary btn-block" type="submit" value="Open and Create"/>

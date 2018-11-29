@@ -30,6 +30,8 @@ class FamilyRouter(BaseRouter):
         if family in self.routes.keys():
             module = self.routes[family]
             return await module.route(msg)
+        else:
+            print("unknown message family: {}".format(family))
 
     @staticmethod
     def family_from_type(msg_type: str) -> str:
