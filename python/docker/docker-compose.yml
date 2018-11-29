@@ -1,0 +1,145 @@
+version: '3'
+
+networks:
+  services:
+    ipam:
+      config:
+        - subnet: 173.17.0.0/24
+
+volumes:
+  webserver-cli:
+  node1-data:
+  node2-data:
+  node3-data:
+  node4-data:
+
+services:
+  #
+  # Webserver
+  #
+  webserver:
+    image: indy-node
+    build:
+      context: ..
+      dockerfile: docker/pool.dockerfile
+    command: 'bash -c ''./scripts/start_webserver.sh'''
+    environment:
+      - IP=173.17.0.101
+      - IPS=173.17.0.101,173.17.0.102,173.17.0.103,173.17.0.104
+      - HOST=173.17.0.100
+      - RUST_LOG=${RUST_LOG}
+    networks:
+      services:
+        ipv4_address: 173.17.0.100
+    ports:
+      - 9000:8000
+    depends_on:
+      - node1
+      - node2
+      - node3
+      - node4
+    volumes:
+      - webserver-cli:/home/indy/.indy-cli
+      - node1-data:/home/indy/.mnt/node1
+      - node2-data:/home/indy/.mnt/node2
+      - node3-data:/home/indy/.mnt/node3
+      - node4-data:/home/indy/.mnt/node4
+
+  #
+  # Agents
+  #
+  agent1:
+    image: py-agent
+    build:
+      context: ..
+      dockerfile: docker/agent.dockerfile
+    command: 'python3.6 indy-agent.py 3000'
+    networks:
+      services:
+        ipv4_address: 173.17.0.150
+    ports:
+      - 3000:3000
+    depends_on:
+      - webserver
+    volumes:
+      - node1-data:/home/indy/ledger
+
+  agent2:
+    image: py-agent
+    command: 'python3.6 indy-agent.py 3001'
+    networks:
+      services:
+        ipv4_address: 173.17.0.151
+    ports:
+      - 3001:3001
+    depends_on:
+      - webserver
+    volumes:
+      - node1-data:/home/indy/ledger
+  
+  #
+  # Nodes
+  #
+  node1:
+    image: indy-node
+    command: 'bash -c ''./scripts/start_node.sh 1'''
+    networks:
+      services:
+        ipv4_address: 173.17.0.101
+    ports:
+      - 9701:9701
+      - 9702:9702
+    environment:
+      - IP=173.17.0.101
+      - IPS=173.17.0.101,173.17.0.102,173.17.0.103,173.17.0.104
+      - RUST_LOG=${RUST_LOG}
+    volumes:
+      - node1-data:/home/indy/ledger
+
+  node2:
+    image: indy-node
+    command: 'bash -c ''./scripts/start_node.sh 2'''
+    networks:
+      services:
+        ipv4_address: 173.17.0.102
+    ports:
+      - 9703:9703
+      - 9704:9704
+    environment:
+      - IP=173.17.0.101
+      - IPS=173.17.0.101,173.17.0.102,173.17.0.103,173.17.0.104
+      - RUST_LOG=${RUST_LOG}
+    volumes:
+      - node2-data:/home/indy/ledger
+
+  node3:
+    image: indy-node
+    command: 'bash -c ''./scripts/start_node.sh 3'''
+    networks:
+      services:
+        ipv4_address: 173.17.0.103
+    ports:
+      - 9705:9705
+      - 9706:9706
+    environment:
+      - IP=173.17.0.101
+      - IPS=173.17.0.101,173.17.0.102,173.17.0.103,173.17.0.104
+      - RUST_LOG=${RUST_LOG}
+    volumes:
+      - node3-data:/home/indy/ledger
+
+  node4:
+    image: indy-node
+    command: 'bash -c ''./scripts/start_node.sh 4'''
+    networks:
+      services:
+        ipv4_address: 173.17.0.104
+    ports:
+      - 9707:9707
+      - 9708:9708
+    environment:
+      - IP=173.17.0.101
+      - IPS=173.17.0.101,173.17.0.102,173.17.0.103,173.17.0.104
+      - RUST_LOG=${RUST_LOG}
+    volumes:
+      - node4-data:/home/indy/ledger
