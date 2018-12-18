@@ -3,7 +3,8 @@
 """
 
 from typing import Callable
-from model import Message, Agent
+from agent import Agent
+from message import Message
 
 class BaseRouter(object):
     """ Router Base Class. Provide basic interface for additional routers.

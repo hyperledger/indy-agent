@@ -15,115 +15,85 @@ import aiohttp_jinja2
 import jinja2
 import base64
 import json
+import argparse
 
 from aiohttp import web
 from indy import crypto, did, error, IndyError, wallet
 
 from modules.connection import Connection
-from modules.ui import Ui
+from modules.admin import Admin
 from modules.admin_walletconnection import AdminWalletConnection
+from modules.basicmessage import BasicMessage
 
-import modules.ui
+import modules.admin
 import serializer.json_serializer as Serializer
 from receiver.message_receiver import MessageReceiver as Receiver
 from router.family_router import FamilyRouter as Router
 from ui_event import UIEventQueue
-from model import Agent
-from message_types import UI, CONN, CONN_UI, ADMIN_WALLETCONNECTION
-from model import Message
+from message_types import ADMIN, CONN, ADMIN_CONNECTIONS, ADMIN_WALLETCONNECTION, BASICMESSAGE, ADMIN_BASICMESSAGE
+from agent import Agent
+from message import Message
 
 
-AGENTINITINCLI = False
-    #no cli input of walletname and passphrase
-if len(sys.argv) == 2 and str.isdigit(sys.argv[1]):
-    PORT = int(sys.argv[1])
-    print("Option 1 -= UI")
-    # args would be port agent1(name) passphrase, cont'd
+# Argument Parsing
+parser = argparse.ArgumentParser()
+parser.add_argument("port", nargs="?", default="8080", type=int, help="The port to attach.")
+parser.add_argument("--wallet", nargs=2, metavar=('walletname','walletpass'), help="The name and passphrase of the wallet to connect to.")
+parser.add_argument("--ephemeralwallet", action="store_true", help="Use ephemeral wallets")
+args = parser.parse_args()
 
-elif len(sys.argv) == 4 and str.isdigit(sys.argv[1]):
-    print("Option 2 - cli")
-    PORT = int(sys.argv[1])
-    WALLETNAME = str(sys.argv[2])
-    WALLETPASS = str(sys.argv[3])
-    AGENTINITINCLI = True
-
-else:
-    PORT = 8080
+# config webapp
 
 LOOP = asyncio.get_event_loop()
 
-AGENT = web.Application()
+WEBAPP = web.Application()
 
-aiohttp_jinja2.setup(AGENT, loader=jinja2.FileSystemLoader('view'))
+aiohttp_jinja2.setup(WEBAPP, loader=jinja2.FileSystemLoader('view'))
 
-AGENT['msg_router'] = Router()
-AGENT['msg_receiver'] = Receiver()
+WEBAPP['msg_router'] = Router()
+WEBAPP['msg_receiver'] = Receiver()
 
-AGENT['ui_event_queue'] = UIEventQueue(LOOP)
-AGENT['ui_router'] = Router()
+WEBAPP['ui_event_queue'] = UIEventQueue(LOOP)
+WEBAPP['ui_router'] = Router()
 
-AGENT['conn_router'] = Router()
-AGENT['conn_receiver'] = Receiver()
+WEBAPP['conn_router'] = Router()
+WEBAPP['conn_receiver'] = Receiver()
 
-AGENT['agent'] = Agent()
-AGENT['modules'] = {
-    'connection': Connection(AGENT['agent']),
-    'ui': Ui(AGENT['agent']),
-    'admin_walletconnection': AdminWalletConnection(AGENT['agent'])
+WEBAPP['agent'] = Agent()
+WEBAPP['modules'] = {
+    'connection': Connection(WEBAPP['agent']),
+    'admin': Admin(WEBAPP['agent']),
+    'admin_walletconnection': AdminWalletConnection(WEBAPP['agent']),
+    'basicmessage': BasicMessage(WEBAPP['agent'])
 }
-AGENT['agent'].modules = AGENT['modules']
+WEBAPP['agent'].modules = WEBAPP['modules']
 
 UI_TOKEN = uuid.uuid4().hex
-AGENT['agent'].ui_token = UI_TOKEN
+WEBAPP['agent'].ui_token = UI_TOKEN
 
 ROUTES = [
-    web.get('/', modules.ui.root),
-    web.get('/ws', AGENT['ui_event_queue'].ws_handler),
+    web.get('/', modules.admin.root),
+    web.get('/ws', WEBAPP['ui_event_queue'].ws_handler),
     web.static('/res', 'view/res'),
-    web.post('/indy', AGENT['msg_receiver'].handle_message),
-    web.post('/offer', AGENT['conn_receiver'].handle_message)
+    web.post('/indy', WEBAPP['msg_receiver'].handle_message),
+    web.post('/offer', WEBAPP['conn_receiver'].handle_message)
 ]
 
-AGENT.add_routes(ROUTES)
+WEBAPP.add_routes(ROUTES)
 
-RUNNER = web.AppRunner(AGENT)
+RUNNER = web.AppRunner(WEBAPP)
 LOOP.run_until_complete(RUNNER.setup())
 
-SERVER = web.TCPSite(runner=RUNNER, port=PORT)
+SERVER = web.TCPSite(runner=RUNNER, port=args.port)
 
-async def connect_wallet(agent_name, passphrase):
-    #set wallet name from msg contents
-
-    AGENT['agent'].owner = agent_name
-    wallet_name = '%s-wallet' % AGENT['agent'].owner
-
-    wallet_config = json.dumps({"id": wallet_name})
-    wallet_credentials = json.dumps({"key": passphrase})
-
-    # pylint: disable=bare-except
-    # TODO: better handle potential exceptions.
+if args.wallet:
     try:
-        await wallet.create_wallet(wallet_config, wallet_credentials)
+        LOOP.run_until_complete(WEBAPP['agent'].connect_wallet(args.wallet[0], args.wallet[1], ephemeral=args.ephemeralwallet))
+        print("Connected to wallet via command line args: {}".format(args.wallet[0]))
     except Exception as e:
         print(e)
-
-    try:
-        AGENT['agent'].wallet_handle = await wallet.open_wallet(wallet_config,
-                                                       wallet_credentials)
-    except Exception as e:
-        print(e)
-        print("Could not open wallet!")
-    AGENT['agent'].initialized = True
-    (_, AGENT['agent'].endpoint_vk) = await did.create_and_store_my_did(
-        AGENT['agent'].wallet_handle, "{}")
-
-
-if AGENTINITINCLI:
-    try:
-        LOOP.run_until_complete(connect_wallet(WALLETNAME, WALLETPASS))
-        print("Connected to wallet via command line args:{}".format(WALLETNAME))
-    except Exception as e:
-        print(e)
+else:
+    print("Configure wallet connection via UI.")
 
 async def conn_process(agent):
     conn_router = agent['conn_router']
@@ -156,6 +126,7 @@ async def message_process(agent):
     connection = agent['modules']['connection']
 
     msg_router.register(CONN.FAMILY, connection)
+    msg_router.register(BASICMESSAGE.FAMILY, agent['modules']['basicmessage'])
 
     while True:
         encrypted_msg_bytes = await msg_receiver.recv()
@@ -165,19 +136,20 @@ async def message_process(agent):
             print('Failed to unpack message: {}\n\nError: {}'.format(encrypted_msg_bytes, e))
             continue
 
-        encrypted_msg_bytes = base64.b64decode(encrypted_msg_str.content.encode('utf-8'))
+        encrypted_msg_bytes = base64.b64decode(encrypted_msg_str['content'].encode('utf-8'))
 
-        agent_dids_str = await did.list_my_dids_with_meta(AGENT['agent'].wallet_handle)
+        agent_dids_str = await did.list_my_dids_with_meta(WEBAPP['agent'].wallet_handle)
 
         agent_dids_json = json.loads(agent_dids_str)
 
         this_did = ""
 
         #  trying to find verkey for encryption
+        decrypted_msg = False # provide a fallthrough value if key not present.
         for agent_did_data in agent_dids_json:
             try:
                 decrypted_msg = await crypto.anon_decrypt(
-                    AGENT['agent'].wallet_handle,
+                    WEBAPP['agent'].wallet_handle,
                     agent_did_data['verkey'],
                     encrypted_msg_bytes
                 )
@@ -197,7 +169,7 @@ async def message_process(agent):
                     continue
 
         if not decrypted_msg:
-            "Agent doesn't have needed verkey for anon_decrypt"
+            print("Agent doesn't have needed verkey for anon_decrypt")
             continue
 
         try:
@@ -207,8 +179,8 @@ async def message_process(agent):
             continue
 
         #  pass this connections did with the message
-        msg.content['did'] = this_did
-        msg = Serializer.unpack_dict(msg.content)
+        msg['content']['did'] = this_did
+        msg = Serializer.unpack_dict(msg['content'])
 
         res = await msg_router.route(msg)
 
@@ -219,11 +191,12 @@ async def ui_event_process(agent):
     ui_router = agent['ui_router']
     ui_event_queue = agent['ui_event_queue']
     connection = agent['modules']['connection']
-    ui = agent['modules']['ui']
+    admin = agent['modules']['admin']
 
-    ui_router.register(CONN_UI.FAMILY, connection)
-    ui_router.register(UI.FAMILY, ui)
+    ui_router.register(ADMIN_CONNECTIONS.FAMILY, connection)
+    ui_router.register(ADMIN.FAMILY, admin)
     ui_router.register(ADMIN_WALLETCONNECTION.FAMILY, agent['modules']['admin_walletconnection'])
+    ui_router.register(ADMIN_BASICMESSAGE.FAMILY, agent['modules']['basicmessage'])
 
     while True:
         msg = await ui_event_queue.recv()
@@ -235,7 +208,7 @@ async def ui_event_process(agent):
                 print('Failed to unpack message: {}\n\nError: {}'.format(msg, e))
                 continue
 
-        if msg.ui_token != UI_TOKEN:
+        if msg['ui_token'] != UI_TOKEN:
             print('Invalid token received, rejecting message: {}'.format(msg))
             continue
 
@@ -244,12 +217,12 @@ async def ui_event_process(agent):
             await ui_event_queue.send(Serializer.pack(res))
 
 try:
-    print('===== Starting Server on: http://localhost:{} ====='.format(PORT))
+    print('===== Starting Server on: http://localhost:{} ====='.format(args.port))
     print('Your UI Token is: {}'.format(UI_TOKEN))
     LOOP.create_task(SERVER.start())
-    LOOP.create_task(conn_process(AGENT))
-    LOOP.create_task(message_process(AGENT))
-    LOOP.create_task(ui_event_process(AGENT))
+    LOOP.create_task(conn_process(WEBAPP))
+    LOOP.create_task(message_process(WEBAPP))
+    LOOP.create_task(ui_event_process(WEBAPP))
     LOOP.run_forever()
 except KeyboardInterrupt:
     print("exiting")

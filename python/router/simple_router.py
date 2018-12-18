@@ -2,7 +2,8 @@
 """
 
 from typing import Callable
-from model import Message, Agent
+from agent import Agent
+from message import Message
 from . import BaseRouter, RouteAlreadyRegisteredException
 
 class SimpleRouter(BaseRouter):

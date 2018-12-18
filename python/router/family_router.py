@@ -4,7 +4,8 @@
 import re
 from typing import Callable
 from modules import Module
-from model import Message, Agent
+from agent import Agent
+from message import Message
 from . import BaseRouter, RouteAlreadyRegisteredException
 
 class FamilyRouter(BaseRouter):

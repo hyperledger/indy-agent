@@ -2,19 +2,21 @@
 """
 
 
-class UI:
-    FAMILY = "ui"
+class ADMIN:
+    FAMILY = "admin"
     VERSION = "1.0"
     BASE = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/" + FAMILY + "/" + VERSION + "/"
 
     STATE = BASE + "state"
     STATE_REQUEST = BASE + "state_request"
-    INITIALIZE = BASE + "initialize"
 
-class CONN_UI:
-    FAMILY = "connections_ui"
+class ADMIN_CONNECTIONS:
+    FAMILY = "admin_connections"
     VERSION = "1.0"
     BASE = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/" + FAMILY + "/" + VERSION + "/"
+
+    CONNECTION_LIST = BASE + "connection_list"
+    CONNECTION_LIST_REQUEST = BASE + "connection_list_request"
 
     SEND_INVITE = BASE + "send_invite"
     INVITE_SENT = BASE + "invite_sent"
@@ -22,7 +24,6 @@ class CONN_UI:
 
     REQUEST_RECEIVED = BASE + "request_received"
     RESPONSE_RECEIVED = BASE + "response_received"
-    MESSAGE_RECEIVED = BASE + "message_received"
 
     SEND_REQUEST = BASE + "send_request"
     REQUEST_SENT = BASE + "request_sent"
@@ -30,6 +31,19 @@ class CONN_UI:
     SEND_RESPONSE = BASE + "send_response"
     RESPONSE_SENT = BASE + "response_sent"
 
+class BASICMESSAGE:
+    FAMILY = "basicmessage"
+    VERSION = "1.0"
+    BASE = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/" + FAMILY + "/" + VERSION + "/"
+
+    MESSAGE = BASE + "message"
+
+class ADMIN_BASICMESSAGE:
+    FAMILY = "admin_basicmessage"
+    VERSION = "1.0"
+    BASE = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/" + FAMILY + "/" + VERSION + "/"
+
+    MESSAGE_RECEIVED = BASE + "message_received"
     SEND_MESSAGE = BASE + "send_message"
     MESSAGE_SENT = BASE + "message_sent"
 
@@ -50,8 +64,6 @@ class CONN:
     INVITE = BASE + "invite"
     REQUEST = BASE + "request"
     RESPONSE = BASE + "response"
-    MESSAGE = BASE + "message"
-
 
 class FORWARD:
     BASE = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/routing/1.0/"

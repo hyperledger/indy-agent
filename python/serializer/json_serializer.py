@@ -4,11 +4,11 @@ Serializer using json as i/o format.
 
 import json
 
-from model import Message
+from message import Message
 
 
 def unpack_dict(dictionary: dict) -> Message:
-    deserialized_msg = Message(**dictionary)
+    deserialized_msg = Message(dictionary)
     return deserialized_msg
 
 
@@ -17,7 +17,7 @@ def unpack(dump) -> Message:
     Deserialize from bytes or str to Message
     """
     dump_dict = json.loads(dump)
-    deserialized_msg = Message(**dump_dict)
+    deserialized_msg = Message(dump_dict)
     return deserialized_msg
 
 

@@ -29,15 +29,15 @@ class UIEventQueue(object):
         return ws
 
     async def _websocket_receive(self):
-        async for msg in self.ws:
-            if msg.type == aiohttp.WSMsgType.TEXT:
-                if msg.data == 'close':
+        async for websocket_message in self.ws:
+            if websocket_message.type == aiohttp.WSMsgType.TEXT:
+                if websocket_message.data == 'close':
                     await self.ws.close()
                 else:
                     await self.ws.send_str('{"type":"ACK"}')
-                    print('Received "{}"'.format(msg.data))
-                    await self.recv_q.put(msg.data)
-            elif msg.type == aiohttp.WSMsgType.ERROR:
+                    print('Received "{}"'.format(websocket_message.data))
+                    await self.recv_q.put(websocket_message.data)
+            elif websocket_message.type == aiohttp.WSMsgType.ERROR:
                 print('ws connection closed with exception %s' %
                       self.ws.exception())
 

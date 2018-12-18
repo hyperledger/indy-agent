@@ -61,11 +61,12 @@
             <form class="form-signin" v-on:submit.prevent="walletconnnect">
                 <h2 class="form-signin-heading">Wallet Credentials</h2>
                 <label for="inputEmail" class="sr-only">Wallet Name</label>
-                <input id="agent_name" v-model="agent_name" type="text" name="name" id="inputEmail" class="form-control" placeholder="Enter your wallet name" required autofocus>
+                <input id="agent_name" v-model="agent_name" type="text" name="name" class="form-control" placeholder="Enter your wallet name" required autofocus>
                 <label for="inputPassword" class="sr-only">Passphrase</label>
-                <input id="passphrase" v-model="passphrase" type="password" name="passphrase" id="inputPassword" class="form-control" placeholder="Passphrase" required>
+                <input id="passphrase" v-model="passphrase" type="password" name="passphrase" class="form-control" placeholder="Passphrase" required>
                 <input id="agent_init" class="btn btn-lg btn-primary btn-block" type="submit" value="Open and Create"/>
             </form>
+            <div class="alert alert-danger" role="alert" v-if="wallet_connect_error">{{wallet_connect_error}}</div>
         </div>
 
         <!-- relationships page -->
@@ -134,7 +135,7 @@
                             <button type="button" class="btn btn-info" v-on:click="display_history(c)">View</button>
                         </td>
                         <td>
-                            <button type="button" class="btn btn-warning" v-if="c.status == 'Invite Received'" v-on:click="send_request(c.invitation_msg)">Send Request</button>
+                            <button type="button" class="btn btn-warning" v-if="c.status == 'Invite Received'" v-on:click="send_request(c)">Send Request</button>
                             <button type="button" class="btn btn-warning" v-if="c.status == 'Request Received'" v-on:click="send_response(c.connecton_request)">Send Response</button>
                             <button type="button" class="btn btn-warning" v-if="c.their_did" v-on:click="send_message(c)">Send Message</button>
                         </td>
@@ -185,6 +186,7 @@
 
     <!-- vue.js development version, includes helpful console warnings -->
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.min.js"></script>
 
     <script src="/res/indy-agent.js"></script>
     <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>

@@ -42,4 +42,6 @@ To do the DEMO (**using both 1 and 2 ways of running the agent**):
 * In agent A browser tab click on the `view` button and check the received message. Click `send response`
 * In agent B browser tab click on the `view` button and check the received message.
 
-Alternatively, the python indy-agent accepts commandline arguments for the wallet name and wallet passphrase (e.g. `Alice` and `1234`). To do this after entering the port number in the command line arguments add in the wallet name and wallet passphrase `python indy-agent 8094 Alice 1234`.
+Alternatively, the python indy-agent accepts commandline arguments for the wallet name and wallet passphrase (e.g. `Alice` and `1234`). To do this after entering the port number in the command line arguments add in the wallet name and wallet passphrase `python indy-agent 8094 --wallet Alice 1234`.
+
+During development, it is useful to use an ephemeral wallet that is created new each time. To do so, provide a name and a passphrase on the command line, and add the `--ephemeralwallet` argument. Example: `python indy-agent 8094 --wallet Alice 1234 --ephemeralwallet`. Note: ephemeral wallets will not overwrite normal wallets.
