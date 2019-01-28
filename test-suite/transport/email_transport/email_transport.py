@@ -71,52 +71,27 @@ class SecureMsg():
         except KeyboardInterrupt:
             print('')
 
-def send(senderEmail, senderPwd, server, port, dest, fileName, subject):
-    filename = fileName
+def send(senderEmail, senderPwd, server, port, dest, filename, subject):
     attachment = open(filename, "rb")
-
-    # instance of MIMEMultipart
+    # instance of MIMEMultipart and attach the body with the msg instance
     m = MIMEMultipart()
-
-        # attach the body with the msg instance
     m.attach(MIMEText('See attached file.', 'plain'))
-
-    # instance of MIMEBase and named as p
+    # instance of MIMEBase and named as p and To change the payload into encoded form
     p = MIMEBase('application', 'octet-stream')
-
-    # To change the payload into encoded form
     p.set_payload((attachment).read())
-
-    # encode into base64
     encoders.encode_base64(p)
-
     p.add_header('Content-Disposition', "attachment; filename=msg.ap")
-
     # attach the instance 'p' to instance 'msg'
     m.attach(p)
-
-    # storing the senders email address.
+    # storing the senders email info
     m['From'] = senderEmail  # TODO: get from config
-
-    # storing the receivers email address
     m['To'] = dest
-
-    # storing the subject
     m['Subject'] = subject
-
     # creates SMTP session
     s = smtplib.SMTP(server, port)
-
-    # start TLS for security
     s.starttls()
-
-    # Authentication (If you use your personal email, use your personal password instread of 'I only talk via email!')
     s.login(senderEmail, senderPwd)
-
-    # sending the mail
     s.sendmail(senderEmail, dest, m.as_string())
-
-    # terminating the session
     s.quit()
 
 def fetch_msg(trans, svr, ssl, username, password, their_email):
@@ -130,10 +105,7 @@ def run(svr, ssl, username, password, their_email):
     trans = transport
     logging.info('Agent started.')
     try:
-        # while True:
-        ###
         wc = fetch_msg(trans, svr, ssl, username, password, their_email)
-        ###
         if wc:
             incoming_email = wc.msg
             print('incoming_email is:')
