@@ -155,7 +155,7 @@ def _find_a2a(msg):
         wc.sender = msg.get('from')
     return wc
 
-class MailTransport:
+class MailHandler:
     @staticmethod
     def bytes_to_a2a_message(bytes):
         '''
@@ -188,7 +188,7 @@ class MailTransport:
         # print('bytes is: ', bytes)
         if bytes:
             print("bytes exist: ", bytes)
-            return MailTransport.bytes_to_a2a_message(bytes)
+            return MailHandler.bytes_to_a2a_message(bytes)
 
         try:
             m = imaplib.IMAP4_SSL(svr) if _true_pat.match(ssl) else imaplib.IMAP4(svr)
@@ -219,7 +219,7 @@ class MailTransport:
                         # If we downloaded anything, return first item.
                         bytes = self.queue.pop()
                         if bytes:
-                            return MailTransport.bytes_to_a2a_message(bytes)
+                            return MailHandler.bytes_to_a2a_message(bytes)
                     finally:
                         if to_trash:
                             for id in to_trash:

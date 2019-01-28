@@ -22,12 +22,16 @@ from email.mime.base import MIMEBase
 from email import encoders
 
 # from .mail_transport import *
-import mail_transport
+import mail_handler
 
 class SecureMsg():
     async def encryptMsg(self, decrypted):
         with open(decrypted, 'rb') as f:
             msg = f.read()
+        print('msg is: ', msg)
+        print('wallet_handle is: ', self.wallet_handle)
+        print('my vk is: ', self.my_vk)
+        print('their vk is: ', self.their_vk)
         encrypted = await crypto.auth_crypt(self.wallet_handle, self.my_vk, self.their_vk, msg)
         # encrypted = await crypto.anon_crypt(their_vk, msg)
         with open('encrypted.dat', 'wb') as f:
@@ -122,7 +126,7 @@ def run(svr, ssl, username, password, their_email):
     incoming_email = None
     transport = None
     if not transport:
-        transport = mail_transport.MailTransport()
+        transport = mail_handler.MailHandler()
     trans = transport
     logging.info('Agent started.')
     try:
@@ -170,31 +174,6 @@ def setUp(loop, securemsg):
 def demo(imap):
     send_to_agent('encrypted.dat', "encrypted msg")
     return run(imap['server'], imap['ssl'], imap['username'], imap['password'], 'indyagent1@gmail.com')
-
-    # while True:
-    #     argv = input('> ').strip().split(' ')
-    #     cmd = argv[0].lower()
-    #     if re.match(cmd, 'send'):
-    #         print("here is where I set userInput - init")
-    #         # This is to send email to the agent.
-    #         # You can use your personal email
-    #         send_to_agent('encrypted.dat', "encrypted msg")
-    #     elif re.match(cmd, 'decrypt'):
-    #         encrypted_msg = run(imap['server'], imap['ssl'], imap['username'], imap['password'], 'indyagent1@gmail.com')
-    #         print(encrypted_msg[0])
-    #         decrypted_msg = loop.run_until_complete(securemsg.decryptMsg(encrypted_msg))
-    #         print(decrypted_msg)
-    #         decrypted_msg_obj = json.loads(decrypted_msg[1].decode("utf-8"))
-    #         print('decrypted_msg_obj is:  ')
-    #         print(decrypted_msg_obj)
-    #     elif re.match(cmd, 'quit'):
-    #         break
-    #     else:
-    #         print('Huh?')
-
-# @pytest.fixture()
-
-
 
 def send_to_agent(filePath, email_subject):
     send(cfg['smtp2']['username'], cfg['smtp2']['password'], cfg['smtp2']['server'], cfg['smtp2']['port'], 'indyagent1@gmail.com', filePath, email_subject)
@@ -259,4 +238,5 @@ securemsg = SecureMsg()
 wallet_email_subject = "test-wallet"
 
 send_to_agent(loop.run_until_complete(create(securemsg)), "test-wallet")
-send_to_agent("testFileToSend.json", "encrypted")
+setUp(loop, securemsg)
+demo(imap_cfg)
