@@ -90,6 +90,7 @@ class Config():
     def __init__(self):
         self.host: str = 'localhost'
         self.port: int = 3000
+        self.endpoint: str = 'http://localhost:3000/indy'
         self.tested_agent: str = 'http://localhost:3001/indy'
         self.wallet_name: str = 'testing'
         self.wallet_path: str = ''

@@ -1,31 +1,34 @@
 """ Define Message class and supporting methods.
 """
+import json
+from collections import UserDict
 
-from box import Box
-from typing import Dict, Any
-
-class Message(Box):
-    """ Message: the container for all information received as a message.
-
-        Message is a "Box" type which enables the use of both dot access and
-        traditional dictionary access (as in `box.thing` and `box['thing']`).
-
-        Box also provides something called a "Frozen Box" which marks the
-        elements of a Box as immutable. This means that something like
-
-            message.type = 'something_else'
-
-        will raise an error.
-
-        It is also worth noting that Message objects do not necessarily have
-        to be valid Indy messages.
+class Message(UserDict):
+    """ Data Model for messages.
     """
-    def __init__(self, message_dictionary: Dict[str, Any]):
-        """ Create a Message object using a Frozen Box.
+    def __init__(self, *args, **kwargs):
+        """ Create a Message object
+        @type: string denoting the message type. Standardization efforts are in progress.
+        @id: identifier for message. Usually a nonce or a DID. This combined with the type
+            tell us how to interpret the message.
+        other things: ambiguous data. Interpretation defined by type and id.
         """
-        super(Box, self).__init__(message_dictionary, frozen_box=True)
+        UserDict.__init__(self,*args, **kwargs)
+        self.context = {}
 
-def is_valid_message(msg: Message) -> bool:
-    """ Validate a Message object.
-    """
-    return 'type' in msg
+
+    def to_dict(self):
+        return self.data
+
+    @property
+    def type(self):
+        return self.data["@type"]
+
+    def as_json(self):
+        class MessageEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, Message):
+                    return obj.to_dict()
+                return json.JSONEncoder.default(self, obj)
+
+        return json.dumps(self, cls=MessageEncoder)
