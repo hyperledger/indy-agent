@@ -1,5 +1,4 @@
 """ Execute the Agent Test Suite.
-
     This file is used to bootstrap into pytest, executing tests that are
     specified in the config file.
 """
@@ -12,4 +11,4 @@ config = Config.from_file(DEFAULT_CONFIG_PATH)
 
 tests = [ ''.join(['tests/', test.replace('.','/')]) for test in config.tests ]
 
-pytest.main(tests)
+pytest.main(tests + [ '-s', '-r fe', '-v' ])

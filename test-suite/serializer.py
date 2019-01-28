@@ -1,8 +1,6 @@
 """ Module containing serializers.
-
     These functions are provided as definitions of the basic interface
     that all serializers should implement.
-
     This abstraction is intended to allow easily switching from one form
     of serialization to another.
 """
@@ -42,4 +40,4 @@ class JSONSerializer(BaseSerializer):
     def pack(msg: Message) -> bytes:
         """ Serialize from Message to json string or from dictionary to json string.
         """
-        return json.dumps(msg.to_dict())
+        return msg.as_json()

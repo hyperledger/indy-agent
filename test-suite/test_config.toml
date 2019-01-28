@@ -6,6 +6,9 @@ host = "localhost"
 # port is the port on which the test agent will listen.
 port = 3000
 
+# Testing agent endpoint
+endpoint = 'http://localhost:3000/indy'
+
 # url of the tested agent
 tested_agent = 'http://localhost:3001/indy'
 
@@ -21,5 +24,5 @@ clear_wallets = true
 # A list of tests to be run but the test agent.
 # Each string in this list is the name of the module containing the test.
 tests = [
-    "hello_world"
+    "connection"
 ]
