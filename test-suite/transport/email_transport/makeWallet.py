@@ -49,53 +49,25 @@ async def create():
 def send(senderEmail, senderPwd, server, port, dest, fileName):
     '''$HOME/.indy_client/wallet/{id}/sqlite.db'''
     home = expanduser("~")
-    # filepath = home + '/.indy_client/wallet/%s' % fileName
-    # filename = fileName
-    # attachment = open(filepath, "rb")
     attachment = open(fileName, "rb")
-
     # instance of MIMEMultipart
     m = MIMEMultipart()
-
-        # attach the body with the msg instance
     m.attach(MIMEText('See attached file.', 'plain'))
-
-    # instance of MIMEBase and named as p
     p = MIMEBase('application', 'octet-stream')
-
-    # To change the payload into encoded form
     p.set_payload((attachment).read())
-
-    # encode into base64
     encoders.encode_base64(p)
-
     p.add_header('Content-Disposition', "attachment; filename=wallet.zip")
-
     # attach the instance 'p' to instance 'msg'
     m.attach(p)
-
-    # storing the senders email address.
+    # storing the senders email info
     m['From'] = senderEmail  # TODO: get from config
-
-    # storing the receivers email address
     m['To'] = dest
-
-    # storing the subject
     m['Subject'] = 'test-wallet'
-
-    # creates SMTP session
     s = smtplib.SMTP(server, port)
-
-    # start TLS for security
+    #start connection
     s.starttls()
-
-    # Authentication (If you use your personal email, use your personal password instread of 'I only talk via email!')
     s.login(senderEmail, senderPwd)
-
-    # sending the mail
     s.sendmail(senderEmail, dest, m.as_string())
-
-    # terminating the session
     s.quit()
 
 def send_to_agent(zipPath):
