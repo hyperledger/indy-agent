@@ -71,50 +71,107 @@ class SecureMsg():
         except KeyboardInterrupt:
             print('')
 
-def send(senderEmail, senderPwd, server, port, dest, filename, subject):
-    attachment = open(filename, "rb")
-    # instance of MIMEMultipart and attach the body with the msg instance
-    m = MIMEMultipart()
-    m.attach(MIMEText('See attached file.', 'plain'))
-    # instance of MIMEBase and named as p and To change the payload into encoded form
-    p = MIMEBase('application', 'octet-stream')
-    p.set_payload((attachment).read())
-    encoders.encode_base64(p)
-    p.add_header('Content-Disposition', "attachment; filename=msg.ap")
-    # attach the instance 'p' to instance 'msg'
-    m.attach(p)
-    # storing the senders email info
-    m['From'] = senderEmail  # TODO: get from config
-    m['To'] = dest
-    m['Subject'] = subject
-    # creates SMTP session
-    s = smtplib.SMTP(server, port)
-    s.starttls()
-    s.login(senderEmail, senderPwd)
-    s.sendmail(senderEmail, dest, m.as_string())
-    s.quit()
+class EmailTransport():
+    def __init__(self):
+        self.smtp_cfg = _apply_cfg(cfg, 'smtp2', _default_smtp_cfg)
+        self.imap_cfg = _apply_cfg(cfg, 'imap2', _default_imap_cfg)
+        self.securemsg = SecureMsg()
+        #creates a temp-wallet and adds their_vk to securemsg instance
+        self.test_wallet = loop.run_until_complete(self.create())
+        self.wallet_email_subject = "test-wallet"
+        #Encrypts testFileToSend.json and crates encrypted.dat
+        loop.run_until_complete(self.securemsg.encryptMsg('testFileToSend.json'))
 
-def fetch_msg(trans, svr, ssl, username, password, their_email):
-    return trans.receive(svr, ssl, username, password, their_email)
+    def send(self, senderEmail, senderPwd, server, port, dest, filename, subject):
+        attachment = open(filename, "rb")
+        # instance of MIMEMultipart and attach the body with the msg instance
+        m = MIMEMultipart()
+        m.attach(MIMEText('See attached file.', 'plain'))
+        # instance of MIMEBase and named as p and To change the payload into encoded form
+        p = MIMEBase('application', 'octet-stream')
+        p.set_payload((attachment).read())
+        encoders.encode_base64(p)
+        p.add_header('Content-Disposition', "attachment; filename=msg.ap")
+        # attach the instance 'p' to instance 'msg'
+        m.attach(p)
+        # storing the senders email info
+        m['From'] = senderEmail  # TODO: get from config
+        m['To'] = dest
+        m['Subject'] = subject
+        # creates SMTP session
+        s = smtplib.SMTP(server, port)
+        s.starttls()
+        s.login(senderEmail, senderPwd)
+        s.sendmail(senderEmail, dest, m.as_string())
+        s.quit()
 
-def run(svr, ssl, username, password, their_email):
-    incoming_email = None
-    transport = None
-    if not transport:
-        transport = mail_handler.MailHandler()
-    trans = transport
-    logging.info('Agent started.')
-    try:
-        wc = fetch_msg(trans, svr, ssl, username, password, their_email)
-        if wc:
-            incoming_email = wc.msg
-            print('incoming_email is:')
-            print(incoming_email)
-        else:
-            time.sleep(2.0)
-    except:
-        logging.info('Agent stopped.')
-    return incoming_email
+    def fetch_msg(self, trans, svr, ssl, username, password, their_email):
+        return trans.receive(svr, ssl, username, password, their_email)
+
+    def run(self, svr, ssl, username, password, their_email):
+        incoming_email = None
+        transport = None
+        if not transport:
+            transport = mail_handler.MailHandler()
+        trans = transport
+        logging.info('Agent started.')
+        try:
+            wc = self.fetch_msg(trans, svr, ssl, username, password, their_email)
+            if wc:
+                incoming_email = wc.msg
+                print('incoming_email is:')
+                print(incoming_email)
+            else:
+                time.sleep(2.0)
+        except:
+            logging.info('Agent stopped.')
+        return incoming_email
+
+    def send_to_agent(self, filePath, email_subject):
+        self.send(self.smtp_cfg['username'], self.smtp_cfg['password'], self.smtp_cfg['server'], self.smtp_cfg['port'], 'indyagent1@gmail.com', filePath, email_subject)
+        time.sleep(5.0)
+
+    def demo(self):
+        self.send_wallet()
+        self.send_to_agent('encrypted.dat', "encrypted msg")
+        return self.run(self.imap_cfg['server'], self.imap_cfg['ssl'], self.imap_cfg['username'], self.imap_cfg['password'], 'indyagent1@gmail.com')
+
+    def send_wallet(self):
+        self.send_to_agent(self.test_wallet, self.wallet_email_subject)
+
+    async def create(self):
+        client = "test"
+        wallet_config = '{"id": "%s-wallet"}' % client
+        wallet_credentials = '{"key": "%s-wallet-key"}' % client
+        opened = False
+
+        # 1. Create Wallet and Get Wallet Handle
+        try:
+            await wallet.create_wallet(wallet_config, wallet_credentials)
+            wallet_handle = await wallet.open_wallet(wallet_config, wallet_credentials)
+            opened = True
+            print("opened at try: ", opened)
+            (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
+            print('my_did and verkey = %s %s' % (my_did, my_vk))
+        except Exception as e:
+            print("Wallet already created", e)
+            pass
+
+        if not opened:
+            wallet_handle = await wallet.open_wallet(wallet_config, wallet_credentials)
+
+        print('wallet = %s' % wallet_handle)
+
+        meta = await did.list_my_dids_with_meta(wallet_handle)
+        res = json.loads(meta)
+        self.securemsg.their_did = res[0]["did"]
+        self.securemsg.their_vk = res[0]["verkey"]
+
+        home = expanduser("~")
+        filePath = home + '/.indy_client/wallet/test-wallet'
+
+        zipPath = shutil.make_archive('wallet', 'zip', filePath)
+        return zipPath
 
 def _get_config_from_cmdline():
     import argparse
@@ -139,52 +196,6 @@ def _apply_cfg(cfg, section, defaults):
             x[key] = src[key]
     return x
 
-def setUp(loop, securemsg):
-    print ("securemsg")
-    loop.run_until_complete(securemsg.encryptMsg('testFileToSend.json'))
-
-def demo(imap):
-    send_to_agent('encrypted.dat', "encrypted msg")
-    return run(imap['server'], imap['ssl'], imap['username'], imap['password'], 'indyagent1@gmail.com')
-
-def send_to_agent(filePath, email_subject):
-    send(cfg['smtp2']['username'], cfg['smtp2']['password'], cfg['smtp2']['server'], cfg['smtp2']['port'], 'indyagent1@gmail.com', filePath, email_subject)
-    time.sleep(5.0)
-
-async def create(securemsg):
-    client = "test"
-    wallet_config = '{"id": "%s-wallet"}' % client
-    wallet_credentials = '{"key": "%s-wallet-key"}' % client
-    opened = False
-
-    # 1. Create Wallet and Get Wallet Handle
-    try:
-        await wallet.create_wallet(wallet_config, wallet_credentials)
-        wallet_handle = await wallet.open_wallet(wallet_config, wallet_credentials)
-        opened = True
-        print("opened at try: ", opened)
-        (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
-        print('my_did and verkey = %s %s' % (my_did, my_vk))
-    except Exception as e:
-        print("Wallet already created", e)
-        pass
-
-    if not opened:
-        wallet_handle = await wallet.open_wallet(wallet_config, wallet_credentials)
-
-    print('wallet = %s' % wallet_handle)
-
-    meta = await did.list_my_dids_with_meta(wallet_handle)
-    res = json.loads(meta)
-    securemsg.their_did = res[0]["did"]
-    securemsg.their_vk = res[0]["verkey"]
-
-    home = expanduser("~")
-    filePath = home + '/.indy_client/wallet/test-wallet'
-
-    zipPath = shutil.make_archive('wallet', 'zip', filePath)
-    return zipPath
-
 _default_smtp_cfg = {
     'server': 'smtp.gmail.com',
     'username': 'your email',
@@ -204,11 +215,6 @@ loop = asyncio.get_event_loop()
 home = expanduser("~")
 args = _get_config_from_cmdline()
 cfg = _get_config_from_file(home)
-smtp_cfg = _apply_cfg(cfg, 'smtp2', _default_smtp_cfg)
-imap_cfg = _apply_cfg(cfg, 'imap2', _default_imap_cfg)
-securemsg = SecureMsg()
-wallet_email_subject = "test-wallet"
 
-send_to_agent(loop.run_until_complete(create(securemsg)), "test-wallet")
-setUp(loop, securemsg)
-demo(imap_cfg)
+email_trans = EmailTransport()
+email_trans.demo()
