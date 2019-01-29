@@ -12,6 +12,7 @@ import logging
 from indy import crypto, wallet
 from config import Config
 from transport.http_transport import HTTPTransport
+from email_transport.email_transport import EmailTransport
 
 @pytest.fixture(scope='session')
 def logger():
@@ -105,4 +106,16 @@ async def transport(config, wallet_handle, event_loop, logger):
 
     logger.debug("Starting transport")
     event_loop.create_task(transport.start_server())
+    return transport
+
+@pytest.fixture(scope='session')
+async def emailTransport(config, wallet_handle, event_loop, logger):
+    """ Transport fixture.
+        Initializes the transport layer.
+    """
+    MSG_Q = asyncio.Queue()
+    transport = EmailTransport()
+
+    logger.debug("Starting email transport")
+    transport.send_wallet()
     return transport

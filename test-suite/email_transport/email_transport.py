@@ -20,9 +20,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
-
 # from .mail_transport import *
-import mail_handler
+from .mail_handler import MailHandler
 
 class SecureMsg():
     async def encryptMsg(self, decrypted):
@@ -112,7 +111,7 @@ class EmailTransport():
         incoming_email = None
         transport = None
         if not transport:
-            transport = mail_handler.MailHandler()
+            transport = MailHandler()
         trans = transport
         logging.info('Agent started.')
         try:
@@ -132,7 +131,6 @@ class EmailTransport():
         time.sleep(5.0)
 
     def demo(self):
-        self.send_wallet()
         self.send_to_agent('encrypted.dat', "encrypted msg")
         return self.run(self.imap_cfg['server'], self.imap_cfg['ssl'], self.imap_cfg['username'], self.imap_cfg['password'], 'indyagent1@gmail.com')
 
@@ -216,5 +214,6 @@ home = expanduser("~")
 args = _get_config_from_cmdline()
 cfg = _get_config_from_file(home)
 
-email_trans = EmailTransport()
-email_trans.demo()
+# email_trans = EmailTransport()
+# email_trans.send_wallet()
+# email_trans.demo()

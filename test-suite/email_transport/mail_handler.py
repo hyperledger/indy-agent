@@ -10,9 +10,9 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
-import agent_common
-import mtc
-import mwc
+from .agent_common import log_exception
+from .mtc import MessageTrustContext
+from .mwc import MessageWithContext
 
 _subject_redundant_prefix_pat = re.compile('(i?)(re|fwd):.*')
 
@@ -113,7 +113,7 @@ def _find_a2a(msg):
     '''
     best_part_ext_idx = 100
     best_part = None
-    wc = mwc.MessageWithContext()
+    wc = MessageWithContext()
     for part in msg.walk():
         if not part.is_multipart():
             fname = part.get_filename()
@@ -139,9 +139,9 @@ def _find_a2a(msg):
         wc.msg = best_part.get_payload(decode=True)
         if best_part_ext_idx < 2:
             # TODO: decrypt and then, if authcrypted, add authenticated_origin in
-            wc.tc = mtc.MessageTrustContext(confidentiality=True, integrity=True)
+            wc.tc = MessageTrustContext(confidentiality=True, integrity=True)
     elif wc.msg:
-       wc.tc = mtc.MessageTrustContext()
+       wc.tc = MessageTrustContext()
     else:
         fname = _save_bad_msg(msg)
         logging.error('No useful a2a message found in %s/%s. From: %s; Date: %s; Subject: %s.' % (
@@ -169,7 +169,7 @@ class MailHandler:
             return wc
         except:
             agent_common.log_exception()
-        return mwc.MessageWithContextMWC()
+        return MessageWithContext()
 
     def __init__(self, queue=None):
         if queue is None:
@@ -232,4 +232,4 @@ class MailHandler:
             agent_common.log_exception()
             print("HERE")
             print(e)
-        return mwc.MessageWithContext()
+        return MessageWithContext()

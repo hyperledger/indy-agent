@@ -1,6 +1,6 @@
 import re
 
-import mtc
+from .mtc import MessageTrustContext
 
 def _make_json_key_value_pat(key):
     pat_txt = r'"%s"\s*:\s*"([^"]+)"' % key
@@ -14,7 +14,7 @@ class MessageWithContext:
     '''
     Hold a message plus its associated trust context, sender, and other metadata.
     '''
-    def __init__(self, msg:str=None, sender:str=None, tc:mtc.MessageTrustContext=None):
+    def __init__(self, msg:str=None, sender:str=None, tc:MessageTrustContext=None):
         # Enforce precondition on datatype of sender
         if sender:
             assert isinstance(sender, str)
@@ -23,7 +23,7 @@ class MessageWithContext:
         self.in_reply_to = None
         self.subject = None
         if tc is None:
-            tc = mtc.MessageTrustContext()
+            tc = MessageTrustContext()
         # If we have a DID or key as the sender, then we know who sent it with confidence.
         # TODO: we need to split sender and reply email address apart. They're different
         # concepts. What we're calling sender here is authenticated_origin. All messages
