@@ -109,7 +109,7 @@ async def transport(config, wallet_handle, event_loop, logger):
     return transport
 
 @pytest.fixture(scope='session')
-async def emailTransport(config, wallet_handle, event_loop, logger):
+def emailTransport(config, wallet_handle, event_loop, logger):
     """ Transport fixture.
         Initializes the transport layer.
     """

@@ -24,8 +24,10 @@ from email import encoders
 from .mail_handler import MailHandler
 
 class SecureMsg():
-    async def encryptMsg(self, decrypted):
-        with open(decrypted, 'rb') as f:
+    async def encryptMsg(self, msg):
+        with open('plaintext.txt', 'w') as f:
+            f.write(msg)
+        with open('plaintext.txt', 'rb') as f:
             msg = f.read()
         print('msg is: ', msg)
         print('wallet_handle is: ', self.wallet_handle)
@@ -79,18 +81,24 @@ class EmailTransport():
         self.test_wallet = loop.run_until_complete(self.create())
         self.wallet_email_subject = "test-wallet"
         #Encrypts testFileToSend.json and crates encrypted.dat
-        loop.run_until_complete(self.securemsg.encryptMsg('testFileToSend.json'))
+        # loop.run_until_complete(self.securemsg.encryptMsg(msg))
 
-    def send(self, senderEmail, senderPwd, server, port, dest, filename, subject):
-        attachment = open(filename, "rb")
+    def send(self, senderEmail, senderPwd, server, port, dest, subject, raw_msg, filename):
+        # instance of MIMEBase and named as p and To change the payload into encoded form
+        p = MIMEBase('application', 'octet-stream')
+
+        p.add_header('Content-Disposition', "attachment; filename=msg.ap")
+        if filename != None:
+            attachment = open(filename, "rb")
+            p.set_payload((attachment).read())
+        else:
+            attachment = raw_msg
+            p.set_payload((attachment))
+        encoders.encode_base64(p)
         # instance of MIMEMultipart and attach the body with the msg instance
         m = MIMEMultipart()
         m.attach(MIMEText('See attached file.', 'plain'))
-        # instance of MIMEBase and named as p and To change the payload into encoded form
-        p = MIMEBase('application', 'octet-stream')
-        p.set_payload((attachment).read())
-        encoders.encode_base64(p)
-        p.add_header('Content-Disposition', "attachment; filename=msg.ap")
+
         # attach the instance 'p' to instance 'msg'
         m.attach(p)
         # storing the senders email info
@@ -126,16 +134,16 @@ class EmailTransport():
             logging.info('Agent stopped.')
         return incoming_email
 
-    def send_to_agent(self, filePath, email_subject):
-        self.send(self.smtp_cfg['username'], self.smtp_cfg['password'], self.smtp_cfg['server'], self.smtp_cfg['port'], 'indyagent1@gmail.com', filePath, email_subject)
+    def send_to_agent(self, email_subject, raw_msg, filePath):
+        self.send(self.smtp_cfg['username'], self.smtp_cfg['password'], self.smtp_cfg['server'], self.smtp_cfg['port'], 'indyagent1@gmail.com', email_subject, raw_msg, filePath)
         time.sleep(5.0)
 
-    def demo(self):
-        self.send_to_agent('encrypted.dat', "encrypted msg")
+    def send_encrypted_store_resp(self, encrypted_msg):
+        self.send_to_agent("encrypted msg", encrypted_msg, None)
         return self.run(self.imap_cfg['server'], self.imap_cfg['ssl'], self.imap_cfg['username'], self.imap_cfg['password'], 'indyagent1@gmail.com')
 
     def send_wallet(self):
-        self.send_to_agent(self.test_wallet, self.wallet_email_subject)
+        self.send_to_agent(self.wallet_email_subject, None, self.test_wallet)
 
     async def create(self):
         client = "test"
