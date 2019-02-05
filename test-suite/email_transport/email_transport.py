@@ -55,9 +55,11 @@ class SecureMsg():
         except:
             pass
         self.wallet_handle = await wallet.open_wallet(self.wallet_config, self.wallet_credentials)
-        print('wallet = %s' % self.wallet_handle)
+        print('mailagent wallet = %s' % self.wallet_handle)
 
         (self.my_did, self.my_vk) = await did.create_and_store_my_did(self.wallet_handle, "{}")
+        print("my_did", self.my_did)
+        print("my_vk", self.my_vk)
         did_vk = {}
         did_vk["did"] = self.my_did
         did_vk["my_vk"] = self.my_vk
@@ -144,10 +146,14 @@ class EmailTransport():
 
     def send_wallet(self):
         self.send_to_agent(self.wallet_email_subject, None, self.test_wallet)
+        os.remove(self.test_wallet)
 
     async def create(self):
+        home = expanduser("~")
+        filePath_create = home + '/.indy_client/wallet/testing'
+
         client = "test"
-        wallet_config = '{"id": "%s-wallet"}' % client
+        wallet_config = '{"id": "%s-wallet", "storage_config": {"path":"%s"}}' % (client, filePath_create)
         wallet_credentials = '{"key": "%s-wallet-key"}' % client
         opened = False
 
@@ -156,28 +162,38 @@ class EmailTransport():
             await wallet.create_wallet(wallet_config, wallet_credentials)
             wallet_handle = await wallet.open_wallet(wallet_config, wallet_credentials)
             opened = True
-            print("opened at try: ", opened)
-            (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
-            print('my_did and verkey = %s %s' % (my_did, my_vk))
+            # print("opened at try: ", opened)
+            (their_did, their_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
+            # print('my_did and verkey = %s %s' % (their_did, their_vk))
+
         except Exception as e:
             print("Wallet already created", e)
             pass
 
         if not opened:
             wallet_handle = await wallet.open_wallet(wallet_config, wallet_credentials)
+            (their_did, their_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
+
+        self.securemsg.their_did = their_did
+        self.securemsg.their_vk = their_vk
+        print("their_vk is: ", self.securemsg.their_vk)
+
 
         print('wallet = %s' % wallet_handle)
 
-        meta = await did.list_my_dids_with_meta(wallet_handle)
-        res = json.loads(meta)
-        self.securemsg.their_did = res[0]["did"]
-        self.securemsg.their_vk = res[0]["verkey"]
+        filePath_export = home + '/.indy_client/wallet/exported-%s-wallet'%client
+        export_config = '{ "path":"%s",  "key":"test-wallet-key"}' %(filePath_export)
+        try:
+            await wallet.export_wallet(wallet_handle, export_config)
+        except Exception as e:
+            if e.error_code == 'ErrorCode.CommonIOError':
+                print("test-wallet already exported")
+            pass
+        await wallet.close_wallet(wallet_handle)
 
-        home = expanduser("~")
-        filePath = home + '/.indy_client/wallet/test-wallet'
+        await wallet.delete_wallet(wallet_config, wallet_credentials)
 
-        zipPath = shutil.make_archive('wallet', 'zip', filePath)
-        return zipPath
+        return filePath_export
 
 def _get_config_from_cmdline():
     import argparse
