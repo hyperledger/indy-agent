@@ -41,7 +41,6 @@ async def test_connection_started_by_tested_agent(config, wallet_handle, transpo
     # Create my information for connection
     (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, '{}')
 
-
     # Send Connection Request to inviter
     request = Message({
         '@type': Connection.REQUEST,
@@ -53,7 +52,15 @@ async def test_connection_started_by_tested_agent(config, wallet_handle, transpo
         }
     })
 
-    await transport.send(invite_msg['endpoint'], await pack(wallet_handle, my_vk, invite_msg['key'], request))
+    await transport.send(
+        invite_msg['endpoint'],
+        await pack(
+            wallet_handle,
+            my_vk,
+            invite_msg['key'],
+            request
+        )
+    )
 
     # Wait for response
     response_bytes = await expect_message(transport, 60)

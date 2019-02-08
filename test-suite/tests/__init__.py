@@ -28,7 +28,7 @@ async def expect_message(transport: BaseTransport, timeout: int):
     for task in unfinished:
         task.cancel()
 
-    fail("No message received before timing out")
+    fail("No message received before timing out; tested agent failed to respond")
 
 def validate_message(expected_attrs: [str], msg: Message):
     __tracebackhide__ = True
@@ -36,36 +36,28 @@ def validate_message(expected_attrs: [str], msg: Message):
         if attribute not in msg:
             fail("Attribute \"{}\" is missing from msg:\n{}".format(attribute, msg))
 
-async def pack(wallet_handle: int, my_vk: str, their_vk: str, msg: Message) -> str:
-    return json.dumps({
-        'to': their_vk,
-        'from': my_vk,
-        'payload': base64.b64encode(
-            await crypto.auth_crypt(
-                wallet_handle,
-                my_vk,
-                their_vk,
-                bytes(Serializer.pack(msg), 'utf-8')
-            )
-        ).decode('ascii')
-    })
+async def pack(wallet_handle: int, my_vk: str, their_vk: str, msg: Message) -> bytes:
+    return await crypto.pack_message(
+        wallet_handle,
+        Serializer.pack(msg),
+        [their_vk],
+        my_vk
+    )
 
 async def unpack(wallet_handle: int, wire_msg_bytes: bytes, **kwargs) -> Message:
     __tracebackhide__ = True
-    wire_msg = json.loads(wire_msg_bytes)
 
-    if 'expected_to_vk' in kwargs:
-        assert kwargs['expected_to_vk'] == wire_msg['to'], 'Message is not for the expected verkey!'
-
-    if 'expected_from_vk' in kwargs:
-        assert kwargs['expected_from_vk'] == wire_msg['from'], 'Message is not from the expected verkey!'
-
-    their_vk, their_data = await crypto.auth_decrypt(
-        wallet_handle,
-        wire_msg['to'],
-        base64.b64decode(wire_msg['payload'])
+    wire_msg = json.loads(
+        await crypto.unpack_message(
+            wallet_handle,
+            wire_msg_bytes
+        )
     )
 
-    assert their_vk == wire_msg['from'], 'Message is not from reported key!'
+    if 'expected_to_vk' in kwargs:
+        assert kwargs['expected_to_vk'] == wire_msg['recipient_verkey'], 'Message is not for the expected verkey!'
 
-    return Serializer.unpack(their_data.decode('utf-8'))
+    if 'expected_from_vk' in kwargs:
+        assert kwargs['expected_from_vk'] == wire_msg['sender_verkey'], 'Message is not from the expected verkey!'
+
+    return Serializer.unpack(wire_msg['message'])
