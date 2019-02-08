@@ -12,7 +12,7 @@ import logging
 from indy import crypto, wallet
 from config import Config
 from transport.http_transport import HTTPTransport
-from email_transport.email_transport import EmailTransport
+from transport.email_transport.email_transport import EmailTransport
 
 @pytest.fixture(scope='session')
 def logger():
