@@ -113,9 +113,9 @@ def emailTransport(config, wallet_handle, event_loop, logger):
     """ Transport fixture.
         Initializes the transport layer.
     """
-    MSG_Q = asyncio.Queue()
     transport = EmailTransport()
 
     logger.debug("Starting email transport")
+    #this creates/exports an wallet and sends the wellet to the testing agent
     transport.send_wallet()
     return transport
