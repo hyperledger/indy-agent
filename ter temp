@@ -1,0 +1,432 @@
+* [33mdd5a790[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mtemp[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmaster[m[33m)[m added ping-pong protocol test with email_transport
+* [33md9f2a4a[m moved email_transport inside of transport dir
+* [33mba765c5[m deleted unnecessary files
+* [33m5c721df[m removed unnecessary file
+* [33m225aa26[m fixed minor errors/cleaned up code and removed comments.
+* [33mccf105c[m using Message and pack function
+* [33mc197eed[m added exporting wallet and deleting wallet after sending walelt
+* [33mdb169fa[m test suite working for email_transport
+* [33m4e89424[m got the email_transport to work in test case
+* [33mf4f9280[m encapsulated methods inside of EmailTransport Class
+* [33md922fb4[m minized comments
+* [33mceb56b3[m minized comments
+* [33m2f49539[m got the mail transport to working in existing test-suite
+* [33m54fa053[m added email transport Signed-off-by: Ike Jeon <chondool@gmail.com>
+* [33m58b49a6[m copied and pasted Danile's PR Signed-off-by: Ike Jeon <chondool@gmail.com>
+*   [33m463d649[m Merge pull request #61 from dbluhm/feature/revised-connection-protocol
+[32m|[m[33m\[m  
+[32m|[m *   [33m2e93766[m Merge branch 'master' into feature/revised-connection-protocol
+[32m|[m [34m|[m[32m\[m  
+[32m|[m [34m|[m[32m/[m  
+[32m|[m[32m/[m[34m|[m   
+* [34m|[m   [33ma6897d3[m Merge pull request #58 from byu-oit/master
+[36m|[m[1;31m\[m [34m\[m  
+[36m|[m * [34m\[m   [33m30aebe6[m Merge branch 'signednode'
+[36m|[m [1;32m|[m[1;33m\[m [34m\[m  
+[36m|[m [1;32m|[m * [34m|[m [33m6026bd5[m Properly validates all issued credentials and proofs Able to self issue a credential based on a schema / credential definition you define
+* [1;32m|[m [1;33m|[m [34m|[m   [33ma69fa76[m Merge pull request #60 from TwinPeek/fix-button-send-connection-offer
+[1;32m|[m[1;35m\[m [1;32m\[m [1;33m\[m [34m\[m  
+[1;32m|[m [1;35m|[m[1;32m/[m [1;33m/[m [34m/[m  
+[1;32m|[m[1;32m/[m[1;35m|[m [1;33m|[m [34m|[m   
+[1;32m|[m * [1;33m|[m [34m|[m [33m25cc4ff[m FIX "Send connection offer" button disappearing in small screen
+[1;32m|[m[1;32m/[m [1;33m/[m [34m/[m  
+[1;32m|[m [1;33m|[m * [33md7472b8[m Correct connection protocol
+[1;32m|[m [1;33m|[m * [33m26ddc2d[m Add comment on signatures.
+[1;32m|[m [1;33m|[m * [33mca60d95[m Fix issues with BadInviteException
+[1;32m|[m [1;33m|[m * [33m538e12a[m Remove unneeded print
+[1;32m|[m [1;33m|[m * [33m048f55a[m Small fixes
+[1;32m|[m [1;33m|[m * [33m33d80bf[m Finish off revised connection protocol
+[1;32m|[m [1;33m|[m * [33mbe73a91[m Restructure invite mechanism
+[1;32m|[m [1;33m|[m * [33m2591a73[m Generate invites, send request modals
+[1;32m|[m [1;33m|[m * [33mf438dd3[m Simple adaptation to current thinking on invites
+[1;32m|[m [1;33m|[m[1;32m/[m  
+[1;32m|[m[1;32m/[m[1;33m|[m   
+* [1;33m|[m   [33mcdd3d4c[m Merge pull request #56 from TelegramSam/hotfix/uilogin
+[1;36m|[m[31m\[m [1;33m\[m  
+[1;36m|[m * [1;33m|[m [33mc5f8ff7[m Hotfix for ui wallet connection with module routing
+[1;36m|[m[1;36m/[m [1;33m/[m  
+* [1;33m|[m   [33mc6cfbe3[m Merge pull request #55 from dbluhm/feature/module-admin-messaging
+[32m|[m[33m\[m [1;33m\[m  
+[32m|[m * [1;33m|[m [33mac6708c[m Make message processing continue even on error
+[32m|[m * [1;33m|[m [33m0972a00[m Better naming, reintroduce offer endpoint
+[32m|[m * [1;33m|[m [33m80ea9f4[m Move message processing to agent class
+[32m|[m * [1;33m|[m [33m1135d97[m Clean up indy-agent.py
+[32m|[m * [1;33m|[m [33m1341b8c[m Rename message receiver
+[32m|[m * [1;33m|[m [33mae8aa2f[m Cleanup indy-agent.py
+[32m|[m * [1;33m|[m [33m9cafe92[m Move admin messaging to modules
+[32m|[m * [1;33m|[m [33m77a196b[m Clean up serialization
+[32m|[m * [1;33m|[m [33m09534f4[m Remove debug statements
+[32m|[m * [1;33m|[m [33m9821e0a[m Alter mechanism for sending websocket messages
+[32m|[m * [1;33m|[m [33m992deee[m Squash connection message processing
+* [33m|[m [1;33m|[m   [33mad80d91[m Merge pull request #54 from dbluhm/feature/routing-in-agent
+[34m|[m[33m\[m [33m\[m [1;33m\[m  
+[34m|[m [33m|[m[33m/[m [1;33m/[m  
+[34m|[m * [1;33m|[m [33mb3e7b9c[m Fix regex for family string parsing from type
+[34m|[m * [1;33m|[m [33me45bf49[m Instantiate module in agent class
+[34m|[m * [1;33m|[m [33me4bbc33[m Remove unneeded print
+[34m|[m * [1;33m|[m [33m6c0e815[m Route by full family string, not just family name
+[34m|[m * [1;33m|[m [33m6e760d1[m Route messages in agent rather than indy-agent
+[34m|[m * [1;33m|[m [33mbd1f5cf[m Remove FORWARD message type for now
+[34m|[m * [1;33m|[m [33m68d6594[m Fix bug in opening wallet through web interface
+[34m|[m * [1;33m|[m [33m7a79158[m Move wallet connection types into relevant mods
+[34m|[m * [1;33m|[m [33m7752a4f[m Move message types for basic message into mods
+[34m|[m * [1;33m|[m [33m08dc6f3[m Move message types for connection to relevant mods
+[34m|[m * [1;33m|[m [33m8332972[m Move Admin message type defs to admin module
+[34m|[m[34m/[m [1;33m/[m  
+* [1;33m|[m   [33m464da14[m Merge pull request #53 from TelegramSam/feature/agent_wire_refactor
+[36m|[m[1;31m\[m [1;33m\[m  
+[36m|[m * [1;33m\[m   [33m9288540[m Merge branch 'master' into feature/agent_wire_refactor
+[36m|[m [1;32m|[m[36m\[m [1;33m\[m  
+[36m|[m [1;32m|[m[36m/[m [1;33m/[m  
+[36m|[m[36m/[m[1;32m|[m [1;33m|[m   
+* [1;32m|[m [1;33m|[m   [33m489fd25[m Merge pull request #51 from TelegramSam/feature/basicmessage
+[1;34m|[m[1;35m\[m [1;32m\[m [1;33m\[m  
+[1;34m|[m [1;35m|[m * [1;33m|[m [33m89a90ab[m Refactor agent message sending and receiving
+[1;34m|[m [1;35m|[m[1;35m/[m [1;33m/[m  
+[1;34m|[m * [1;33m|[m [33m30bfafa[m @type updates, new UI
+[1;34m|[m * [1;33m|[m [33m7a066cb[m message display UI
+[1;34m|[m * [1;33m|[m [33m9199558[m Fix wrong from in messages
+[1;34m|[m * [1;33m|[m [33m235094b[m Sort messages returned in descending order
+[1;34m|[m * [1;33m|[m [33m279a2e4[m remove old message button
+[1;34m|[m * [1;33m|[m [33m30bbe8c[m Fix missing await
+[1;34m|[m * [1;33m|[m [33m4145b95[m Implement get_messages
+[1;34m|[m * [1;33m|[m [33m622ce6a[m Add missing import
+[1;34m|[m * [1;33m|[m [33mbac4863[m Fix Admin_BasicMessage with modifications to spec
+[1;34m|[m * [1;33m|[m [33m2b8717e[m fixed autoload of pairwise and dynamic title
+[1;34m|[m * [1;33m|[m [33mbbb7cb9[m Alter BasicMessage to meet hackathon spec
+[1;34m|[m * [1;33m|[m [33mf63246c[m basic chat UI complete with sending (but not yet receiving) messages. Signed-off-by: Sam Curren <telegramsam@gmail.com>
+[1;34m|[m * [1;33m|[m [33mfac99da[m connection detail page
+[1;34m|[m * [1;33m|[m [33mc95f419[m Displays a new pairwise connection table. To see someone in this table, first make a connection, then refresh the page.
+[1;34m|[m[1;34m/[m [1;33m/[m  
+* [1;33m|[m   [33m560e193[m Merge pull request #50 from michaeldboyd/docs-feature
+[1;36m|[m[31m\[m [1;33m\[m  
+[1;36m|[m * [1;33m\[m   [33me0a5bf5[m Merge branch 'master' of github.com:hyperledger/indy-agent into docs-feature
+[1;36m|[m [32m|[m[33m\[m [1;33m\[m  
+[1;36m|[m * [33m|[m [1;33m|[m [33m8325b36[m ready to merge
+[1;36m|[m * [33m|[m [1;33m|[m [33m47722e6[m temporarily change to michaeldboyd's repo to test
+[1;36m|[m * [33m|[m [1;33m|[m [33m400a81c[m changed conf file to have correct conf file
+[1;36m|[m * [33m|[m [1;33m|[m   [33m455e89f[m Merge branch 'master' of https://github.com/hyperledger/indy-agent into docs-feature
+[1;36m|[m [34m|[m[35m\[m [33m\[m [1;33m\[m  
+[1;36m|[m * [35m|[m [33m|[m [1;33m|[m [33m5a463c9[m changed remote_conf repo name
+[1;36m|[m * [35m|[m [33m|[m [1;33m|[m [33m02d5ac0[m added source directory and added main docs/ readme.md
+[1;36m|[m * [35m|[m [33m|[m [1;33m|[m   [33m999878c[m Merge branch 'master' of https://github.com/hyperledger/indy-agent
+[1;36m|[m [36m|[m[1;31m\[m [35m\[m [33m\[m [1;33m\[m  
+[1;36m|[m * [1;31m|[m [35m|[m [33m|[m [1;33m|[m [33mfa83706[m removed indces
+[1;36m|[m * [1;31m|[m [35m|[m [33m|[m [1;33m|[m [33m77c55f2[m completed agent documentation
+[1;36m|[m * [1;31m|[m [35m|[m [33m|[m [1;33m|[m [33m485d1eb[m configured readthedocs and sphinx for indy-agent
+* [1;31m|[m [1;31m|[m [35m|[m [33m|[m [1;33m|[m   [33m151ff06[m Merge pull request #49 from dbluhm/pyref/type-refactor
+[33m|[m[1;33m\[m [1;31m\[m [1;31m\[m [35m\[m [33m\[m [1;33m\[m  
+[33m|[m [1;33m|[m[33m_[m[1;31m|[m[33m_[m[1;31m|[m[33m_[m[35m|[m[33m/[m [1;33m/[m  
+[33m|[m[33m/[m[1;33m|[m [1;31m|[m [1;31m|[m [35m|[m [1;33m|[m   
+[33m|[m * [1;31m|[m [1;31m|[m [35m|[m [1;33m|[m [33m51bb717[m Rename type -> @type in accordance with HIPE
+[33m|[m[33m/[m [1;31m/[m [1;31m/[m [35m/[m [1;33m/[m  
+* [1;31m|[m [1;31m|[m [35m|[m [1;33m|[m   [33m9f996c6[m Merge pull request #48 from TelegramSam/feature/ephemeral_wallets
+[1;34m|[m[1;35m\[m [1;31m\[m [1;31m\[m [35m\[m [1;33m\[m  
+[1;34m|[m * [1;31m|[m [1;31m|[m [35m|[m [1;33m|[m [33m28d4808[m Argparse and Ephemeral Wallets
+[1;34m|[m[1;34m/[m [1;31m/[m [1;31m/[m [35m/[m [1;33m/[m  
+* [1;31m|[m [1;31m|[m [35m|[m [1;33m|[m   [33m35b9e03[m Merge pull request #47 from TelegramSam/feature/admin_connections
+[35m|[m[31m\[m [1;31m\[m [1;31m\[m [35m\[m [1;33m\[m  
+[35m|[m [31m|[m[35m_[m[1;31m|[m[35m_[m[1;31m|[m[35m/[m [1;33m/[m  
+[35m|[m[35m/[m[31m|[m [1;31m|[m [1;31m|[m [1;33m|[m   
+[35m|[m * [1;31m|[m [1;31m|[m [1;33m|[m [33maead308[m UI to Admin Rename
+[35m|[m[35m/[m [1;31m/[m [1;31m/[m [1;33m/[m  
+* [1;31m|[m [1;31m|[m [1;33m|[m   [33m296051b[m Merge pull request #46 from TelegramSam/feature/message_model
+[32m|[m[33m\[m [1;31m\[m [1;31m\[m [1;33m\[m  
+[32m|[m * [1;31m|[m [1;31m|[m [1;33m|[m [33m96c6bbf[m Message Class refactor. This will make it easier to transition to @attributes in the future.
+[32m|[m[32m/[m [1;31m/[m [1;31m/[m [1;33m/[m  
+* [1;31m|[m [1;31m|[m [1;33m|[m   [33meb1a7c2[m Merge pull request #44 from TelegramSam/feature/thread_handlers
+[34m|[m[35m\[m [1;31m\[m [1;31m\[m [1;33m\[m  
+[34m|[m * [1;31m\[m [1;31m\[m [1;33m\[m   [33md156a92[m Merge remote-tracking branch 'upstream/master' into feature/thread_handlers
+[34m|[m [36m|[m[34m\[m [1;31m\[m [1;31m\[m [1;33m\[m  
+[34m|[m [36m|[m[34m/[m [1;31m/[m [1;31m/[m [1;33m/[m  
+[34m|[m[34m/[m[36m|[m [1;31m|[m [1;31m|[m [1;33m|[m   
+* [36m|[m [1;31m|[m [1;31m|[m [1;33m|[m   [33m4d5d51f[m Merge pull request #45 from dbluhm/collapse-model
+[1;31m|[m[1;33m\[m [36m\[m [1;31m\[m [1;31m\[m [1;33m\[m  
+[1;31m|[m [1;33m|[m[1;31m_[m[36m|[m[1;31m_[m[1;31m|[m[1;31m/[m [1;33m/[m  
+[1;31m|[m[1;31m/[m[1;33m|[m [36m|[m [1;31m|[m [1;33m|[m   
+[1;31m|[m * [36m|[m [1;31m|[m [1;33m|[m [33m7b6779e[m Fix typo
+[1;31m|[m * [36m|[m [1;31m|[m [1;33m|[m [33m88c0774[m Rename aiohttp application
+[1;31m|[m * [36m|[m [1;31m|[m [1;33m|[m [33m98fa1c3[m Move connect_wallet to Agent class
+[1;31m|[m * [36m|[m [1;31m|[m [1;33m|[m [33m7fd2a78[m Remove model.py
+[1;31m|[m[1;31m/[m [36m/[m [1;31m/[m [1;33m/[m  
+[1;31m|[m * [1;31m|[m [1;33m|[m [33m0c593c5[m Correct thread id to thid to match current HIPE.
+[1;31m|[m * [1;31m|[m [1;33m|[m [33me33ea9d[m Thread callbacks in admin console. This demonstrates how to use threading to read error responses. Error responses for wallet connection problems.
+[1;31m|[m[1;31m/[m [1;31m/[m [1;33m/[m  
+* [1;31m|[m [1;33m|[m   [33mf8b8cc7[m Merge pull request #43 from TelegramSam/feature/admin_walletconnection
+[1;34m|[m[1;35m\[m [1;31m\[m [1;33m\[m  
+[1;34m|[m * [1;31m|[m [1;33m|[m [33m0b76e00[m Admin_WalletConnection_Family
+[1;34m|[m [1;31m|[m[1;31m/[m [1;33m/[m  
+* [1;31m|[m [1;33m|[m   [33m08e04dc[m Merge pull request #42 from dbluhm/master
+[1;31m|[m[31m\[m [1;31m\[m [1;33m\[m  
+[1;31m|[m [31m|[m[1;31m/[m [1;33m/[m  
+[1;31m|[m[1;31m/[m[31m|[m [1;33m|[m   
+[1;31m|[m * [1;33m|[m [33mf390b5c[m Clean up readme
+[1;31m|[m * [1;33m|[m [33mf4575cc[m Remove "indy" symlink
+[1;31m|[m * [1;33m|[m [33me10c488[m Remove python wrapper docs
+[1;31m|[m[1;31m/[m [1;33m/[m  
+* [1;33m|[m   [33m3edeeda[m Merge pull request #41 from blhagadorn/walletCli
+[32m|[m[33m\[m [1;33m\[m  
+[32m|[m * [1;33m|[m [33ma4d589a[m Fixed README typo
+[32m|[m * [1;33m|[m   [33m762445d[m Merge branch 'master' into walletCli
+[32m|[m [34m|[m[35m\[m [1;33m\[m  
+[32m|[m [34m|[m * [1;33m|[m [33m745166f[m Added note in readme for python agent wallet cli
+[32m|[m [34m|[m[32m/[m [1;33m/[m  
+[32m|[m[32m/[m[34m|[m [1;33m|[m   
+[32m|[m * [1;33m|[m [33mac97a4f[m Changed UI to allow initialized
+[32m|[m * [1;33m|[m [33mfa0ad8c[m Duplicated and renamed config wallet
+[32m|[m[32m/[m [1;33m/[m  
+* [1;33m|[m   [33md9c2bff[m Merge pull request #37 from peacekeeper/master
+[1;33m|[m[1;31m\[m [1;33m\[m  
+[1;33m|[m [1;31m|[m[1;33m/[m  
+[1;33m|[m[1;33m/[m[1;31m|[m   
+[1;33m|[m * [33m581cef5[m Correct /offer URL in README.
+[1;33m|[m[1;33m/[m  
+*   [33m8bf7d9b[m Merge pull request #35 from dbluhm/master
+[1;32m|[m[1;33m\[m  
+[1;32m|[m * [33mc00fe87[m Remove stray whitespace
+[1;32m|[m * [33m02fdd4c[m Route messages by message family
+[1;32m|[m * [33m07e4a04[m Correct type strings in connections
+[1;32m|[m * [33m9d0edcc[m Fix errors from Modules to Module Objects
+[1;32m|[m * [33md9c6679[m Fix indy-agent
+[1;32m|[m * [33m6b7d6a0[m Make Modules Module Objects
+* [1;33m|[m   [33m1d142a8[m Merge pull request #36 from TelegramSam/feature/readme_updates
+[1;33m|[m[1;35m\[m [1;33m\[m  
+[1;33m|[m [1;35m|[m[1;33m/[m  
+[1;33m|[m[1;33m/[m[1;35m|[m   
+[1;33m|[m * [33m0b3166d[m Addition of Scope markdown, and minor updates to both the python README and the repo README
+[1;33m|[m[1;33m/[m  
+*   [33me8ef6f1[m Merge pull request #34 from ken-ebert/master
+[1;36m|[m[31m\[m  
+[1;36m|[m * [33mecd8a2c[m fixed init.py to use agent name in wallet creation
+[1;36m|[m[1;36m/[m  
+*   [33m997beb6[m Merge pull request #32 from TelegramSam/feature/vuejs
+[32m|[m[33m\[m  
+[32m|[m * [33m0ab804f[m Replace frameworkless js code with Vue.js in the UI of the python reference agent. Signed-off-by: Sam Curren <telegramsam@gmail.com>
+[32m|[m[32m/[m  
+*   [33m967fadf[m Merge pull request #31 from trthhrtz/Connection_protocol_signed_last
+[34m|[m[35m\[m  
+[34m|[m * [33mcecff84[m Finalize connection protocol, add front-end logic Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33me98d1f4[m Finalize connection protocol, add back-end logic Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m0d4fba2[m Finalize connection protocol, improve decrypting route Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m612ad17[m Del redundant prints Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m213ae89[m Explicit params in aiohhtp server run Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m4685a17[m Update README Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33mc0da6fc[m Add dockerfile for python agent Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m05f529e[m Add requirements Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m9b144f9[m Re-struct messages after code-review Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m6a92a1b[m Fix, delete connections field from agent Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m3be1f92[m [IA-38] Pretty output to message history, utils re-struct Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m53357a0[m [IA-38] Re-struct main app, add anon_decrypt Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m8276989[m [IA-38] Add back-end logic Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m23cf843[m [IA-38] Add front-end logic Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m867219a[m [IA-38] MSG model to have dynamic fields Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m10a4339[m [IA-38] Add helpers Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33mff90984[m [IA-38] Re-struct message types Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m425c4f8[m [IA-38] Re-struct serializers Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m5bdc7b6[m Jinja fix Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m1aff9b3[m [IA-10] Display connection history Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m7d371a5[m Move SendConn Button up-right Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m4cd8012[m [IA-11] Add connectons history table Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33mb22b0e4[m [IA-11] Add todayDate method Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33mf7a7a8c[m [IA-11] Delete handlebars Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33mfdde22b[m Adapt agent to Indy 1.6 Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m539e31a[m Improve gitignore Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m69e601a[m Pass UI_token auto Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m93d050d[m Add jinja templates Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33mb7c0497[m Indy-agent.py imports order to pep-8 Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33md8e4245[m Delete unused librares Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m1e108b8[m Make connections flow go through the /offer route Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m3f0588b[m Add each connection unique nonce Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m557c79e[m [IA-13] Add reject(offer and conn) logic (front-end) Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33md02f9a0[m [IA-13] Add reject(offer and conn) logic (back-end) Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33md360098[m Fix - add connections_wrapper var Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m6c6d5c0[m [IA-13] Add reject messages Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33me8bc0e6[m [IA-13] Add accept offer logic (front-end) Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m5cab60e[m [IA-13] Add accept offer logic (back-end) Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33mfd1eb79[m Make send_offer to go through /indy route (front-end logic) Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m5cbb905[m Make send_offer to go through /indy route (back-end logic) Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m1944a51[m [IA-13] Add accept offer/connection messages types Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m87fdb3c[m [IA-13] Change structure of handlebars templates Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m34ac051[m [IA-13] Add utils file and removeELementById method Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33m2d0c00d[m [IA-14] Python Agent Connection Display Buttons Signed-off-by: Kuzma Leshakov <k.leshakov@yandex.ru>
+[34m|[m * [33mc5eaa3c[m Change UI request functions to work with offers
+[34m|[m * [33m32cb49c[m WIP: Standardize Message construction
+[34m|[m * [33m12fb1ef[m added to readme. I added a change directory command to the readme.
+[34m|[m * [33m551927e[m WS UI: Add modal for sending request
+[34m|[m * [33m06ccee7[m WS UI: Send conn req form in modal
+[34m|[m * [33m2e07179[m Ignore messages on /indy if agent is not initialized
+[34m|[m * [33m494c332[m WS UI: Wallet open page
+[34m|[m * [33m5977af7[m WIP: WebSocket UI functionality expanding
+[34m|[m * [33mda22866[m WIP: Moving to WebSocket UI
+[34m|[m * [33m31c0930[m Rename EDGE_CONNECT to UI_CONNECT
+[34m|[m * [33m1f56e68[m "Persistent" state for WebSocket UI across refresh
+[34m|[m * [33mbb21cb0[m Fixed missing argument in UIEventQueue send
+[34m|[m * [33m30e9452[m Added WebSocket Based UI
+[34m|[m * [33mde444a1[m Add basic setup instructions for indy-agent python
+[34m|[m * [33mff6ed15[m Implement changes for new wallet storage
+* [35m|[m   [33m3a8e19f[m Merge pull request #29 from dbluhm/master
+[36m|[m[1;31m\[m [35m\[m  
+[36m|[m * [35m|[m [33mb02ac2f[m Remove accidental revert artifact, encrypted.dat
+[36m|[m * [35m|[m [33m7c390ff[m Revert "Implement connection protocol in python agent (#25)"
+[36m|[m[36m/[m [35m/[m  
+* [35m|[m [33ma36ff70[m Implement connection protocol in python agent (#25)
+* [35m|[m   [33m3dcd5c4[m Merge pull request #26 from saholman/master
+[35m|[m[1;33m\[m [35m\[m  
+[35m|[m [1;33m|[m[35m/[m  
+[35m|[m[35m/[m[1;33m|[m   
+[35m|[m * [33mdc8d745[m remove unused sockets.io
+[35m|[m[35m/[m  
+*   [33m697fe5b[m Merge pull request #22 from byu-oit/master
+[1;34m|[m[1;35m\[m  
+[1;34m|[m *   [33m7511088[m Simplified README for docker-compose update
+[1;34m|[m [1;36m|[m[1;34m\[m  
+[1;34m|[m [1;36m|[m[1;34m/[m  
+[1;34m|[m[1;34m/[m[1;36m|[m   
+* [1;36m|[m   [33me0062bf[m Merge pull request #21 from AxelNennker/request_nonce
+[32m|[m[33m\[m [1;36m\[m  
+[32m|[m * [1;36m|[m [33mb9c29b5[m the nodejs code suggest that the field name is not request_nonce but nonce
+* [33m|[m [1;36m|[m   [33m121648b[m Merge pull request #20 from ArthurManz/feature/add-docker-compose
+[33m|[m[35m\[m [33m\[m [1;36m\[m  
+[33m|[m [35m|[m[33m/[m [1;36m/[m  
+[33m|[m[33m/[m[35m|[m [1;36m|[m   
+[33m|[m * [1;36m|[m [33mb36f178[m NodeJS: Add Docker-Compose & Update Indy SDK to v1.6.1
+* [35m|[m [1;36m|[m   [33m2b6537b[m Merge pull request #19 from dbluhm/test-suite
+[36m|[m[1;31m\[m [35m\[m [1;36m\[m  
+[36m|[m * [35m|[m [1;36m|[m [33m9afe49b[m Further clean up
+* [1;31m|[m [35m|[m [1;36m|[m   [33m4698ba7[m Merge pull request #18 from dbluhm/test-suite
+[1;32m|[m[1;31m\[m [1;31m\[m [35m\[m [1;36m\[m  
+[1;32m|[m [1;31m|[m[1;31m/[m [35m/[m [1;36m/[m  
+[1;32m|[m * [35m|[m [1;36m|[m [33m74566e3[m Fix whitespace
+[1;32m|[m * [35m|[m [1;36m|[m [33m354f552[m Add quickstart to test-suite README
+[1;32m|[m * [35m|[m [1;36m|[m [33m8329da8[m Restructuring and cleanup
+[1;32m|[m * [35m|[m [1;36m|[m [33m6bbf265[m Flatten serializer into a single file
+[1;32m|[m * [35m|[m [1;36m|[m [33mdd3ae93[m Clean up and TODOs
+[1;32m|[m * [35m|[m [1;36m|[m [33m69ff895[m Reworked agent.py
+[1;32m|[m * [35m|[m [1;36m|[m [33m0be4621[m First working hello world test
+[1;32m|[m * [35m|[m [1;36m|[m [33mb1deb6d[m Remove unneeded "init" module
+[1;32m|[m * [35m|[m [1;36m|[m [33mc8b8bc8[m Continued Restructuring
+[1;32m|[m * [35m|[m [1;36m|[m [33md814d93[m Restructuring
+[1;32m|[m * [35m|[m [1;36m|[m [33ma9049e7[m Further improvements to config
+[1;32m|[m * [35m|[m [1;36m|[m [33mab30322[m More configuration options
+[1;32m|[m * [35m|[m [1;36m|[m [33m38bd78a[m Minor fixes to config
+[1;32m|[m * [35m|[m [1;36m|[m [33m5668a38[m Begin Indy Agent Test Suite
+[1;32m|[m[1;32m/[m [35m/[m [1;36m/[m  
+* [35m|[m [1;36m|[m   [33mdd9550c[m Merge pull request #15 from sitalab/doc-updates
+[35m|[m[1;35m\[m [35m\[m [1;36m\[m  
+[35m|[m [1;35m|[m[35m/[m [1;36m/[m  
+[35m|[m[35m/[m[1;35m|[m [1;36m|[m   
+[35m|[m * [1;36m|[m [33m97d26d6[m Fixed small typo in the nodejs/README.md
+[35m|[m[35m/[m [1;36m/[m  
+* [1;36m|[m   [33mbb8a7e6[m Merge pull request #11 from byu-oit/master
+[1;36m|[m[31m\[m [1;36m\[m  
+* [31m\[m [1;36m\[m   [33m1bdf94d[m Merge pull request #12 from swcurran/master
+[32m|[m[33m\[m [31m\[m [1;36m\[m  
+[32m|[m * [31m|[m [1;36m|[m [33mf5584b7[m Tweaks to the manage script to work on Windows.
+[32m|[m[32m/[m [31m/[m [1;36m/[m  
+[32m|[m [31m|[m * [33me254567[m Simplified README for docker-compose update
+[32m|[m [31m|[m * [33m1cd6110[m updated documention to fix dependency issues
+[32m|[m [31m|[m[31m/[m  
+[32m|[m * [33m051ad38[m Revisions based on dbluhm's review comments
+[32m|[m * [33mfb4ca8b[m Documentation of agent concepts and message protocol
+[32m|[m[32m/[m  
+*   [33m07832bf[m Merge pull request #10 from byu-oit/master
+[34m|[m[35m\[m  
+[34m|[m *   [33m6bb2233[m fixed merge conflicts
+[34m|[m [36m|[m[34m\[m  
+[34m|[m [36m|[m[34m/[m  
+[34m|[m[34m/[m[36m|[m   
+* [36m|[m   [33m059cc83[m Merge pull request #9 from byu-oit/master
+[1;32m|[m[1;33m\[m [36m\[m  
+[1;32m|[m * [36m\[m   [33mcf3d1c6[m Merge branch 'master' into master
+[1;32m|[m [1;34m|[m[1;32m\[m [36m\[m  
+[1;32m|[m [1;34m|[m[1;32m/[m [36m/[m  
+[1;32m|[m[1;32m/[m[1;34m|[m [36m|[m   
+* [1;34m|[m [36m|[m   [33m981c7c6[m Merge pull request #8 from swcurran/master
+[1;36m|[m[31m\[m [1;34m\[m [36m\[m  
+[1;36m|[m * [1;34m|[m [36m|[m [33m509fdaf[m Added docker config for nodejs agent and docs to run
+[1;36m|[m[1;36m/[m [1;34m/[m [36m/[m  
+* [1;34m|[m [36m|[m   [33mb749892[m Merge pull request #6 from dbluhm/master
+[32m|[m[33m\[m [1;34m\[m [36m\[m  
+[32m|[m * [1;34m|[m [36m|[m [33mf88b6e7[m Fix incorrect route
+[32m|[m * [1;34m|[m [36m|[m [33mce17795[m Resolve errors reported by pylint
+[32m|[m * [1;34m|[m [36m|[m [33mdf5fbe2[m Clean up errors reported by pylint (root)
+[32m|[m * [1;34m|[m [36m|[m [33m381d26f[m added port through command line, fixed response
+[32m|[m * [1;34m|[m [36m|[m [33me78a1d4[m Fix request/response bugs
+[32m|[m * [1;34m|[m [36m|[m [33mec68a05[m Fix initialization process
+[32m|[m * [1;34m|[m [36m|[m [33m9bd5a79[m tried to get page to render correctly.
+[32m|[m * [1;34m|[m [36m|[m [33m131cf24[m added functionality to see connection requests
+[32m|[m * [1;34m|[m [36m|[m [33ma927371[m fixed merge conflicts, refactored view dir
+[32m|[m * [1;34m|[m [36m|[m [33me9b2a01[m Receive requests into pending list
+[32m|[m * [1;34m|[m [36m|[m [33m3a079ce[m added view
+[32m|[m * [1;34m|[m [36m|[m [33m54ab82b[m added jinja template engine
+[32m|[m * [1;34m|[m [36m|[m [33m04b6562[m added index middleware
+[32m|[m * [1;34m|[m [36m|[m [33mc89e7b8[m Restructure for creation of more endpoints
+[32m|[m * [1;34m|[m [36m|[m [33m5527f99[m changed to site
+[32m|[m * [1;34m|[m [36m|[m [33m73069c8[m Restructure: use web.Application for routing
+[32m|[m * [1;34m|[m [36m|[m [33mfa56189[m Remove unused "cryptor" module
+[32m|[m * [1;34m|[m [36m|[m [33m3b9099a[m added web folder
+[32m|[m * [1;34m|[m [36m|[m [33m82e26cc[m Init run before everything else
+[32m|[m * [1;34m|[m [36m|[m [33mf2bb530[m Simple cli for sending
+[32m|[m * [1;34m|[m [36m|[m [33m56759ae[m Implement handle_response and send_response
+[32m|[m * [1;34m|[m [36m|[m [33mae4f70f[m Fix INDY_AGENT_PORT env var
+[32m|[m * [1;34m|[m [36m|[m [33m2735baf[m Port defined by INDY_AGENT_PORT
+[32m|[m * [1;34m|[m [36m|[m [33mc890915[m Output port number correctly
+[32m|[m * [1;34m|[m [36m|[m [33m817c218[m Fixed handle_request; close to completion
+[32m|[m * [1;34m|[m [36m|[m [33mec994c7[m added everything, added more functionality in conn req handler
+[32m|[m * [1;34m|[m [36m|[m [33mfbe7ff8[m WIP connection request processing
+[32m|[m * [1;34m|[m [36m|[m [33m5edcce6[m removed merge conflicts
+[32m|[m * [1;34m|[m [36m|[m [33me8c201c[m Make packing/unpacking more generic
+[32m|[m * [1;34m|[m [36m|[m [33m89c3e5f[m Fixed several errors; can now accept conn_reqs
+[32m|[m * [1;34m|[m [36m|[m [33m842d925[m added indy-docs file
+[32m|[m * [1;34m|[m [36m|[m [33mdf5240b[m removed typo in connection.py
+[32m|[m * [1;34m|[m [36m|[m [33med82b45[m added wallet_handle param
+[32m|[m * [1;34m|[m [36m|[m [33m9c96547[m Add simple handler router
+[32m|[m * [1;34m|[m [36m|[m [33m08793f2[m added file
+[32m|[m * [1;34m|[m [36m|[m [33m87d2609[m added message and serialization methods
+[32m|[m * [1;34m|[m [36m|[m [33mbb1c107[m Uncomment and clean up in base_receiver
+[32m|[m * [1;34m|[m [36m|[m [33m176871f[m Basic main loop in indy-agent
+[32m|[m * [1;34m|[m [36m|[m [33m107bced[m Add aiohttp as dep to setup.py
+[32m|[m * [1;34m|[m [36m|[m [33m8a2ce38[m Implement basic async http producer/consumer
+[32m|[m * [1;34m|[m [36m|[m [33m4ec2823[m added packer class
+[32m|[m * [1;34m|[m [36m|[m [33m797d116[m added basic sandbox on encrypting messages
+[32m|[m * [1;34m|[m [36m|[m [33mcd37565[m WIP aiohttp receiver
+[32m|[m * [1;34m|[m [36m|[m [33m389b054[m added basic sandbox on encrypting messages
+[32m|[m * [1;34m|[m [36m|[m [33m03bc1c5[m Add some bass classes and outline folder structure
+[32m|[m[32m/[m [1;34m/[m [36m/[m  
+* [1;34m|[m [36m|[m   [33m62ad821[m Merge pull request #3 from saholman/master
+[34m|[m[35m\[m [1;34m\[m [36m\[m  
+[34m|[m * [1;34m|[m [36m|[m [33mebd9d6c[m correction in setup steps
+[34m|[m * [1;34m|[m [36m|[m [33m1657a4a[m documentation
+* [35m|[m [1;34m|[m [36m|[m   [33mcd4b35e[m Merge pull request #2 from saholman/master
+[36m|[m[35m\[m [35m\[m [1;34m\[m [36m\[m  
+[36m|[m [35m|[m[35m/[m [1;34m/[m [36m/[m  
+[36m|[m [35m|[m [1;34m|[m * [33m1d7d1f7[m additional work on proofs, ui, fixed deleted commit
+[36m|[m [35m|[m [1;34m|[m[1;34m/[m  
+[36m|[m [35m|[m * [33m5df82ba[m able to validate proofs
+[36m|[m [35m|[m * [33m4c15c89[m updated docs, bug fixes
+[36m|[m [35m|[m * [33mdc2b3ec[m updated docs, bug fix
+[36m|[m [35m|[m * [33me319e42[m ui improvements, proofs
+[36m|[m [35m|[m * [33ma50a46a[m receive identity pr
+[36m|[m [35m|[m * [33m117d398[m delete connection request on success
+[36m|[m [35m|[m * [33m0f69e3c[m able to issue credentials
+[36m|[m [35m|[m * [33m4464533[m partial credential issuing
+[36m|[m [35m|[m * [33m59e6feb[m ui cleanup, save public did
+[36m|[m [35m|[m * [33m99d1e0e[m schemas, credential definitions
+[36m|[m [35m|[m * [33m1a84a43[m Working version of connection transaction
+[36m|[m [35m|[m * [33mdcc8453[m partial relationship management
+[36m|[m [35m|[m * [33m943d493[m Using URNs for message type names
+[36m|[m [35m|[m * [33mbcc71a8[m ui update
+[36m|[m [35m|[m * [33m208659e[m anoncrypted messages with ledger endpoint lookup
+[36m|[m [35m|[m * [33m627a3df[m write endpoint to ledger
+[36m|[m [35m|[m * [33meb3869a[m write ednpoint before did to ledger
+[36m|[m [35m|[m * [33m5bde1ff[m multihost messages
+[36m|[m [35m|[m * [33m21b16e3[m self anon-crypt working
+[36m|[m [35m|[m * [33mc526b0a[m correction in setup steps
+[36m|[m [35m|[m * [33m1ee437f[m documentation
+[36m|[m [35m|[m[35m/[m  
+[36m|[m * [33m40e29a7[m removed nested LICENSE
+[36m|[m * [33m4f98e62[m removed nested LICENSE
+[36m|[m * [33mc52c606[m removed nested LICENSE
+[36m|[m * [33md8299ac[m basic framework
+[36m|[m[36m/[m  
+* [33ma3ad9b9[m Initial commit
