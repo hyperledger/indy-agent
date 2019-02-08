@@ -1,0 +1,4 @@
+python3-indy==1.8.0
+aiohttp==3.4.4
+toml
+pytest==3.6.4

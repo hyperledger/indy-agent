@@ -1,4 +1,4 @@
-python3-indy==1.6.5
+python3-indy==1.8.0
 aiohttp==3.4.4
 serpy==0.3.1
 aiohttp-index==0.1

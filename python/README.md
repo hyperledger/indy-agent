@@ -9,7 +9,10 @@ the Sovrin protocol. See [Scope](scope.md) for goal and scope details.
 Requirements
 ------------
 - Python 3.6
-- Latest `libindy` from https://github.com/hyperledger/indy-sdk
+- At least `libindy` version 1.8.0 from https://github.com/hyperledger/indy-sdk
+
+**If you have used the python reference agent, make sure you have updated `libindy` to at least version 1.8.0 and
+reinstalled pip packages into your virtual environment.**
 
 Quickstart
 ----------

@@ -19,6 +19,10 @@ def logger():
     return logging.getLogger()
 
 @pytest.fixture(scope='session')
+def logger():
+    return logging.getLogger()
+
+@pytest.fixture(scope='session')
 def event_loop():
     """ Create a session scoped event loop.
         pytest.asyncio plugin provides a default function scoped event loop
