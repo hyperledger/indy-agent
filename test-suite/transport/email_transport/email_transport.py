@@ -6,12 +6,7 @@ import smtplib
 import os
 import asyncio
 import time
-import re
-import json
 import logging
-import shutil
-import zipfile
-import pytest
 
 from indy import crypto, did, wallet
 
@@ -20,7 +15,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
-# from .mail_transport import *
 from .mail_handler import MailHandler
 
 class SecureMsg():
@@ -34,7 +28,6 @@ class SecureMsg():
         print('my vk is: ', self.my_vk)
         print('their vk is: ', self.their_vk)
         encrypted = await crypto.auth_crypt(self.wallet_handle, self.my_vk, self.their_vk, msg)
-        # encrypted = await crypto.anon_crypt(their_vk, msg)
         with open('encrypted.dat', 'wb') as f:
             f.write(bytes(encrypted))
         print('prepping %s' % msg)
@@ -42,7 +35,6 @@ class SecureMsg():
 #     # Step 6 code goes here, replacing the read() stub.
     async def decryptMsg(self, encrypted):
         decrypted = await crypto.auth_decrypt(self.wallet_handle, self.my_vk, encrypted)
-        # decrypted = await crypto.anon_decrypt(wallet_handle, my_vk, encrypted)
         return (decrypted)
 #
     async def init(self):
@@ -82,8 +74,6 @@ class EmailTransport():
         #creates a temp-wallet and adds their_vk to securemsg instance
         self.test_wallet = loop.run_until_complete(self.create())
         self.wallet_email_subject = "test-wallet"
-        #Encrypts testFileToSend.json and crates encrypted.dat
-        # loop.run_until_complete(self.securemsg.encryptMsg(msg))
 
     def send(self, senderEmail, senderPwd, server, port, dest, subject, raw_msg, filename):
         # instance of MIMEBase and named as p and To change the payload into encoded form
@@ -237,7 +227,3 @@ loop = asyncio.get_event_loop()
 home = expanduser("~")
 args = _get_config_from_cmdline()
 cfg = _get_config_from_file(home)
-
-# email_trans = EmailTransport()
-# email_trans.send_wallet()
-# email_trans.demo()
