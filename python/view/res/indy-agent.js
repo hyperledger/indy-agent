@@ -3,7 +3,8 @@
         ADMIN_CONNECTIONS_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin_connections/1.0/",
         ADMIN_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin/1.0/",
         ADMIN_WALLETCONNECTION_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin_walletconnection/1.0/",
-        ADMIN_BASICMESSAGE_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin_basicmessage/1.0/"
+        ADMIN_BASICMESSAGE_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin_basicmessage/1.0/",
+        ADMIN_TRUSTPING_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin_trustping/1.0/"
     };
 
     const ADMIN = {
@@ -41,6 +42,13 @@
         MESSAGE_RECEIVED: MESSAGE_TYPES.ADMIN_BASICMESSAGE_BASE + "message_received",
         GET_MESSAGES: MESSAGE_TYPES.ADMIN_BASICMESSAGE_BASE + "get_messages",
         MESSAGES: MESSAGE_TYPES.ADMIN_BASICMESSAGE_BASE + "messages"
+    };
+
+    const ADMIN_TRUSTPING = {
+        SEND_TRUSTPING: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "send_trustping",
+        TRUSTPING_SENT: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_sent",
+        TRUSTPING_RECEIVED: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_received"
+        // SEND_TRUSTPING: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "send_trustping"
     };
 
     // Message Router {{{
@@ -277,6 +285,15 @@
                     '@type': ADMIN_BASICMESSAGE.GET_MESSAGES,
                     with: this.connection.their_did
                 });
+            },
+            send_trustping: function(){
+                msg = {
+                    '@type': ADMIN_TRUSTPING.SEND_TRUSTPING,
+                    to: this.connection.their_did,
+                    message: "Trust ping"
+                };
+                sendTrustPing(msg);
+                // this.new_basicmessage = "";
             }
         }
     });
@@ -376,6 +393,8 @@
     msg_router.register(ADMIN_CONNECTION.REQUEST_RECEIVED, ui_relationships.request_received);
     msg_router.register(ADMIN_BASICMESSAGE.MESSAGE_RECEIVED, ui_relationships.message_received);
     msg_router.register(ADMIN_BASICMESSAGE.MESSAGES, ui_relationships.messages);
+    msg_router.register(ADMIN_TRUSTPING.TRUSTPING_SENT, ui_relationships.trustping_sent);
+    msg_router.register(ADMIN_TRUSTPING.TRUSTPING_RECEIVED, ui_relationships.trustping_received);
 
     // }}}
 
@@ -395,7 +414,32 @@
         thread_router.route(msg);
     });
 
+    // Listen for trustpings
+    socket.addEventListener('trustping', function (event) {
+        console.log("trustping event received");
+        // console.log('Routing: ' + event.data);
+        // msg = JSON.parse(event.data);
+        // msg_router.route(msg);
+        // thread_router.route(msg);
+    });
+
     function sendMessage(msg, thread_cb){
+        //decorate message as necessary
+        msg.id = (new Date()).getTime(); // ms since epoch
+
+        // register thread callback
+        if(typeof thread_cb !== "undefined") {
+            thread_router.register(msg.id, thread_cb);
+            thread_router.register(msg.id, thread_cb);
+        }
+
+        // TODO: Encode properly when wire protocol is finished
+        console.log("sending message", msg);
+        socket.send(JSON.stringify(msg));
+    }
+
+    function sendTrustPing(msg, thread_cb){
+        console.log("sendTrustPing hit in JS")
         //decorate message as necessary
         msg.id = (new Date()).getTime(); // ms since epoch
 
@@ -405,6 +449,6 @@
         }
 
         // TODO: Encode properly when wire protocol is finished
-        console.log("sending message", msg);
+        console.log("sending trustping", msg);
         socket.send(JSON.stringify(msg));
     }
