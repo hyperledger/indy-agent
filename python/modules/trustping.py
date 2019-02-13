@@ -19,17 +19,17 @@ class AdminTrustPing(Module):
     VERSION = "1.0"
     FAMILY = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/" + FAMILY_NAME + "/" + VERSION + "/"
 
-    # MESSAGE_RECEIVED = FAMILY + "message_received"
+    TRUSTPING_RECEIVED = FAMILY + "trustping_received"
     SEND_TRUSTPING = FAMILY + "send_trustping"
-    TRUSTPING_SENT = FAMILY + "message_sent"
-    # GET_MESSAGES = FAMILY + "get_messages"
-    MESSAGES = FAMILY + "messages"
+    TRUSTPING_SENT = FAMILY + "trustping_sent"
+    GET_TRUSTPINGS = FAMILY + "get_trustpings"
+    TRUSTPINGS = FAMILY + "trustpings"
 
     def __init__(self, agent):
         self.agent = agent
         self.router = SimpleRouter()
         self.router.register(AdminTrustPing.SEND_TRUSTPING, self.send_trustping)
-        # self.router.register(AdminBasicMessage.GET_MESSAGES, self.get_messages)
+        self.router.register(AdminTrustPing.GET_TRUSTPINGS, self.get_trustpings)
 
     async def route(self, msg: Message) -> Message:
         return await self.router.route(msg)
@@ -64,51 +64,51 @@ class AdminTrustPing(Module):
         )
 
         message = Message({
-            '@type': TrustPing.MESSAGE,
+            '@type': TrustPing.TRUSTPING,
             'timestamp': time_sent,
             'content': message_to_send
         })
 
         await self.agent.send_message_to_agent(their_did_str, message)
 
-        # await self.agent.send_admin_message(
-        #     Message({
-        #         '@type': AdminBasicMessage.MESSAGE_SENT,
-        #         'id': self.agent.ui_token,
-        #         'with': their_did_str,
-        #         'message': {
-        #             'from': my_did_str,
-        #             'timestamp': time_sent,
-        #             'content': message_to_send
-        #         }
-        #     })
-        # )
+        await self.agent.send_admin_message(
+            Message({
+                '@type': AdminTrustPing.TRUSTPING_SENT,
+                'id': self.agent.ui_token,
+                'with': their_did_str,
+                'message': {
+                    'from': my_did_str,
+                    'timestamp': time_sent,
+                    'content': message_to_send
+                }
+            })
+        )
 
-    # async def get_messages(self, msg: Message) -> Message:
-    #     their_did = msg['with']
-    #     search_handle = await non_secrets.open_wallet_search(
-    #         self.agent.wallet_handle, "basicmessage",
-    #         json.dumps({"their_did": their_did}),
-    #         json.dumps({})
-    #     )
-    #     results = await non_secrets.fetch_wallet_search_next_records(self.agent.wallet_handle, search_handle, 100)
-    #
-    #     messages = []
-    #     for r in json.loads(results)["records"] or []: # records is None if empty
-    #         d = json.loads(r['value'])
-    #         d["_id"] = r["id"] # include record id for further reference.
-    #         messages.append(d)
-    #     #TODO: fetch in loop till all records are processed
-    #     await non_secrets.close_wallet_search(search_handle)
-    #     messages = sorted(messages, key=lambda n: n['timestamp'], reverse=True)
-    #
-    #     await self.agent.send_admin_message(
-    #         Message({
-    #             '@type': AdminBasicMessage.MESSAGES,
-    #             'with': their_did,
-    #             'messages': messages
-    #         })
-    #     )
+    async def get_trustpings(self, msg: Message) -> Message:
+        their_did = msg['with']
+        search_handle = await non_secrets.open_wallet_search(
+            self.agent.wallet_handle, "trustping",
+            json.dumps({"their_did": their_did}),
+            json.dumps({})
+        )
+        results = await non_secrets.fetch_wallet_search_next_records(self.agent.wallet_handle, search_handle, 100)
+
+        messages = []
+        for r in json.loads(results)["records"] or []: # records is None if empty
+            d = json.loads(r['value'])
+            d["_id"] = r["id"] # include record id for further reference.
+            messages.append(d)
+        #TODO: fetch in loop till all records are processed
+        await non_secrets.close_wallet_search(search_handle)
+        messages = sorted(messages, key=lambda n: n['timestamp'], reverse=True)
+
+        await self.agent.send_admin_message(
+            Message({
+                '@type': AdminTrustPing.TRUSTPING_SENT,
+                'with': their_did,
+                'messages': messages
+            })
+        )
 
 
 class TrustPing(Module):
@@ -116,12 +116,12 @@ class TrustPing(Module):
     VERSION = "1.0"
     FAMILY = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/" + FAMILY_NAME + "/" + VERSION + "/"
 
-    MESSAGE = FAMILY + "message"
+    TRUSTPING = FAMILY + "trustping"
 
     def __init__(self, agent):
         self.agent = agent
         self.router = SimpleRouter()
-        self.router.register(TrustPing.MESSAGE, self.receive_message)
+        self.router.register(TrustPing.TRUSTPING, self.receive_message)
 
     async def route(self, msg: Message) -> Message:
         return await self.router.route(msg)
@@ -129,19 +129,19 @@ class TrustPing(Module):
     async def receive_message(self, msg: Message) -> Message:
 
         # store message in the wallet
-        await non_secrets.add_wallet_record(
-            self.agent.wallet_handle,
-            "trustping",
-            uuid.uuid4().hex,
-            json.dumps({
-                'from': msg.context['from_did'],
-                'timestamp': msg['timestamp'],
-                'content': msg['content']
-            }),
-            json.dumps({
-                "their_did": msg.context['from_did']
-            })
-        )
+        # await non_secrets.add_wallet_record(
+        #     self.agent.wallet_handle,
+        #     "trustping",
+        #     uuid.uuid4().hex,
+        #     json.dumps({
+        #         'from': msg.context['from_did'],
+        #         'timestamp': msg['timestamp'],
+        #         'content': msg['content']
+        #     }),
+        #     json.dumps({
+        #         "their_did": msg.context['from_did']
+        #     })
+        # )
 
         await self.agent.send_admin_message(
             Message({

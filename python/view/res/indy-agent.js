@@ -47,8 +47,9 @@
     const ADMIN_TRUSTPING = {
         SEND_TRUSTPING: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "send_trustping",
         TRUSTPING_SENT: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_sent",
-        TRUSTPING_RECEIVED: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_received"
-        // SEND_TRUSTPING: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "send_trustping"
+        TRUSTPING_RECEIVED: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_received",
+        GET_TRUSTPINGS: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "get_trustpings",
+        TRUSTPINGS: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustpings"
     };
 
     // Message Router {{{
@@ -111,6 +112,8 @@
         connection: {},
         new_basicmessage: "",
         basicmessage_list: [],
+        new_trustping:"",
+        trustping_list:[],
         history_view: []
     };
 
@@ -250,6 +253,34 @@
                 console.log(this.history_view);
                 $('#historyModal').modal({});
             },
+            trustping_sent: function (msg) {
+                //var c = this.get_connection_by_name(msg.content.name);
+                //c.status = "Message sent";
+                // msg.with has their_did to help match.
+                if(msg.with == this.connection.their_did){
+                    //connection view currently open
+                    sendMessage({
+                        '@type': ADMIN_TRUSTPING.GET_TRUSTPINGS,
+                        with: msg.with
+                    });
+                } else {
+                    //connection not currently open. set unread flag on connection details?
+                }
+            },
+            trustping_received: function (msg) {
+                if(msg.with == this.connection.their_did){
+                    //connection view currently open
+                    sendMessage({
+                        '@type': ADMIN_TRUSTPING.GET_TRUSTPINGS,
+                        with: msg.with
+                    });
+                } else {
+                    //connection not currently open. set unread flag on connection details?
+                }
+            },
+            trustpings: function(msg){
+                this.trustpings_list = msg.messages;
+            },
             get_connection_by_name: function(label){
                return this.connections.find(function(x){return x.label === msg.label;});
             },
@@ -290,10 +321,16 @@
                 msg = {
                     '@type': ADMIN_TRUSTPING.SEND_TRUSTPING,
                     to: this.connection.their_did,
-                    message: "Trust ping"
+                    message: this.new_trustping
                 };
-                sendTrustPing(msg);
-                // this.new_basicmessage = "";
+                sendMessage(msg);
+                this.new_trustping = "";
+            },
+            load: function(){
+                sendMessage(msg = {
+                    '@type': ADMIN_TRUSTPING.GET_TRUSTPINGS,
+                    with: this.connection.their_did
+                });
             }
         }
     });
@@ -395,7 +432,7 @@
     msg_router.register(ADMIN_BASICMESSAGE.MESSAGES, ui_relationships.messages);
     msg_router.register(ADMIN_TRUSTPING.TRUSTPING_SENT, ui_relationships.trustping_sent);
     msg_router.register(ADMIN_TRUSTPING.TRUSTPING_RECEIVED, ui_relationships.trustping_received);
-
+    msg_router.register(ADMIN_TRUSTPING.TRUSTPINGS, ui_relationships.trustpings);
     // }}}
 
     // Create WebSocket connection.
@@ -417,10 +454,10 @@
     // Listen for trustpings
     socket.addEventListener('trustping', function (event) {
         console.log("trustping event received");
-        // console.log('Routing: ' + event.data);
-        // msg = JSON.parse(event.data);
-        // msg_router.route(msg);
-        // thread_router.route(msg);
+        console.log('Routing: ' + event.data);
+        msg = JSON.parse(event.data);
+        msg_router.route(msg);
+        thread_router.route(msg);
     });
 
     function sendMessage(msg, thread_cb){
@@ -429,7 +466,6 @@
 
         // register thread callback
         if(typeof thread_cb !== "undefined") {
-            thread_router.register(msg.id, thread_cb);
             thread_router.register(msg.id, thread_cb);
         }
 
@@ -442,7 +478,7 @@
         console.log("sendTrustPing hit in JS")
         //decorate message as necessary
         msg.id = (new Date()).getTime(); // ms since epoch
-
+        console.log(msg);
         // register thread callback
         if(typeof thread_cb !== "undefined") {
             thread_router.register(msg.id, thread_cb);
