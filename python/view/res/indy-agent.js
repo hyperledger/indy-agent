@@ -49,9 +49,6 @@
         TRUSTPING_SENT: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_sent",
         TRUSTPING_RECEIVED: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_received",
         TRUSTPING_RESPONSE: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_response"
-
-        // GET_TRUSTPINGS: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "get_trustpings",
-        // TRUSTPINGS: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustpings"
     };
 
     // Message Router {{{
@@ -60,7 +57,7 @@
         route:
             function(msg) {
                 if (msg['@type'] in this.routes) {
-                    console.log(msg['@type']);
+                    console.log(msg['@type'])
                     this.routes[msg['@type']](msg);
                 } else {
                     console.log('Message from server without registered route: ' + JSON.stringify(msg));
@@ -115,9 +112,6 @@
         connection: {},
         new_basicmessage: "",
         basicmessage_list: [],
-        new_trustping:"",
-        last_trustping_sent:"",
-        trustping_list:[],
         history_view: []
     };
 
@@ -223,7 +217,7 @@
                 // remove from pending connections list
                 this.connections.splice(this.connections.indexOf(c), 1);
 
-                // no-w request a state update to see the new pairwise connection
+                // now request a state update to see the new pairwise connection
                 sendMessage({'@type': ADMIN.STATE_REQUEST});
             },
             message_sent: function (msg) {
@@ -450,4 +444,3 @@
         console.log("sending message", msg);
         socket.send(JSON.stringify(msg));
     }
-
