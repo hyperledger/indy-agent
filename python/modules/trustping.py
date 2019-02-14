@@ -41,6 +41,7 @@ class AdminTrustPing(Module):
         print(msg)
 
 
+
     async def send_trustping(self, msg: Message) -> Message:
         """ UI activated method.
         """
@@ -54,21 +55,6 @@ class AdminTrustPing(Module):
 
         message_to_send = msg['message']
         time_sent = time.time()
-
-        # store message in the wallet
-        # await non_secrets.add_wallet_record(
-        #     self.agent.wallet_handle,
-        #     "trustping",
-        #     uuid.uuid4().hex,
-        #     json.dumps({
-        #         'from': my_did_str,
-        #         'timestamp': time_sent,
-        #         'content': message_to_send
-        #     }),
-        #     json.dumps({
-        #         "their_did": their_did_str
-        #     })
-        # )
 
         message = Message({
             '@type': TrustPing.MESSAGE,
@@ -93,25 +79,6 @@ class AdminTrustPing(Module):
 
     async def get_trustpings(self, msg: Message) -> Message:
         their_did = msg['with']
-        print("get_trustpings")
-        # search_handle = await non_secrets.open_wallet_search(
-        #     self.agent.wallet_handle, "trustping",
-        #     json.dumps({"their_did": their_did}),
-        #     json.dumps({})
-        # )
-        # results = await non_secrets.fetch_wallet_search_next_records(self.agent.wallet_handle, search_handle, 100)
-
-        # messages = []
-        # for r in json.loads(results)["records"] or []: # records is None if empty
-        #     d = json.loads(r['value'])
-        #     d["_id"] = r["id"] # include record id for further reference.
-        #     messages.append(d)
-        # #TODO: fetch in loop till all records are processed
-        # await non_secrets.close_wallet_search(search_handle)
-        # messages = sorted(messages, key=lambda n: n['timestamp'], reverse=True)
-        #Trustping stored on pingee
-        #Wire for trustping received
-
         await self.agent.send_admin_message(
             Message({
                 '@type': AdminTrustPing.MESSAGES,
@@ -134,7 +101,6 @@ class TrustPing(Module):
         self.agent = agent
         self.router = SimpleRouter()
         self.router.register(TrustPing.MESSAGE, self.receive_message)
-        # self.router.register(TrustPing.SENDBACKTRUSTPING, self)
 
     async def route(self, msg: Message) -> Message:
         return await self.router.route(msg)
@@ -153,13 +119,13 @@ class TrustPing(Module):
                 }
             })
         )
-        time.sleep(15)
+        time.sleep(10)
         await self.agent.send_message_to_agent(
             msg.context['from_did'],
             Message({
                 '@type': AdminTrustPing.TRUSTPING_RESPONSE,
                 '@id': self.agent.ui_token,
-                'with': msg.context['from_did']
+                'comment_ltxt': "Hi yourself, I'm here"
             })
         )
 
