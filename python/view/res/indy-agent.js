@@ -48,8 +48,10 @@
         SEND_TRUSTPING: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "send_trustping",
         TRUSTPING_SENT: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_sent",
         TRUSTPING_RECEIVED: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_received",
-        GET_TRUSTPINGS: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "get_trustpings",
-        TRUSTPINGS: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustpings"
+        TRUSTPING_RESPONSE: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_response"
+
+        // GET_TRUSTPINGS: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "get_trustpings",
+        // TRUSTPINGS: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustpings"
     };
 
     // Message Router {{{
@@ -58,6 +60,7 @@
         route:
             function(msg) {
                 if (msg['@type'] in this.routes) {
+                    console.log(msg['@type']);
                     this.routes[msg['@type']](msg);
                 } else {
                     console.log('Message from server without registered route: ' + JSON.stringify(msg));
@@ -113,6 +116,7 @@
         new_basicmessage: "",
         basicmessage_list: [],
         new_trustping:"",
+        last_trustping_sent:"",
         trustping_list:[],
         history_view: []
     };
@@ -217,7 +221,7 @@
                 // remove from pending connections list
                 this.connections.splice(this.connections.indexOf(c), 1);
 
-                // now request a state update to see the new pairwise connection
+                // no-w request a state update to see the new pairwise connection
                 sendMessage({'@type': ADMIN.STATE_REQUEST});
             },
             message_sent: function (msg) {
@@ -253,34 +257,34 @@
                 console.log(this.history_view);
                 $('#historyModal').modal({});
             },
-            trustping_sent: function (msg) {
-                //var c = this.get_connection_by_name(msg.content.name);
-                //c.status = "Message sent";
-                // msg.with has their_did to help match.
-                if(msg.with == this.connection.their_did){
-                    //connection view currently open
-                    sendMessage({
-                        '@type': ADMIN_TRUSTPING.GET_TRUSTPINGS,
-                        with: msg.with
-                    });
-                } else {
-                    //connection not currently open. set unread flag on connection details?
-                }
-            },
+            // trustping_sent: function (msg) {
+            //     //var c = this.get_connection_by_name(msg.content.name);
+            //     //c.status = "Message sent";
+            //     // msg.with has their_did to help match.
+            //     if(msg.with == this.connection.their_did){
+            //         //connection view currently open
+            //         sendMessage({
+            //             '@type': ADMIN_TRUSTPING.GET_TRUSTPINGS,
+            //             with: msg.with
+            //         });
+            //     } else {
+            //         //connection not currently open. set unread flag on connection details?
+            //     }
+            // },
             trustping_received: function (msg) {
                 if(msg.with == this.connection.their_did){
                     //connection view currently open
                     sendMessage({
-                        '@type': ADMIN_TRUSTPING.GET_TRUSTPINGS,
+                        '@type': ADMIN_TRUSTPING.TRUSTPING_RECEIVED,
                         with: msg.with
                     });
                 } else {
                     //connection not currently open. set unread flag on connection details?
                 }
             },
-            trustpings: function(msg){
-                this.trustpings_list = msg.messages;
-            },
+            // trustpings: function(msg){
+            //     this.trustpings_list = msg.messages;
+            // },
             get_connection_by_name: function(label){
                return this.connections.find(function(x){return x.label === msg.label;});
             },
@@ -321,17 +325,26 @@
                 msg = {
                     '@type': ADMIN_TRUSTPING.SEND_TRUSTPING,
                     to: this.connection.their_did,
-                    message: this.new_trustping
+                    from: this.connection.did,
+                    message: "Send trustping"
                 };
+                console.log("send trustping");
+                console.log((new Date()).getTime());
+                this.connection.last_trustping_datetime = (new Date()).getTime();
                 sendMessage(msg);
-                this.new_trustping = "";
             },
-            load: function(){
-                sendMessage(msg = {
-                    '@type': ADMIN_TRUSTPING.GET_TRUSTPINGS,
-                    with: this.connection.their_did
-                });
+            load: function() {
+                // sendMessage({
+                //    '@type'
+                // });
+                console.log("load function hit")
             }
+            // load: function(){
+            //     sendMessage(msg = {
+            //         '@type': ADMIN_TRUSTPING.GET_TRUSTPINGS,
+            //         with: this.connection.their_did
+            //     });
+            // }
         }
     });
 
@@ -445,15 +458,6 @@
 
     // Listen for messages
     socket.addEventListener('message', function (event) {
-        console.log('Routing: ' + event.data);
-        msg = JSON.parse(event.data);
-        msg_router.route(msg);
-        thread_router.route(msg);
-    });
-
-    // Listen for trustpings
-    socket.addEventListener('trustping', function (event) {
-        console.log("trustping event received");
         console.log('Routing: ' + event.data);
         msg = JSON.parse(event.data);
         msg_router.route(msg);
