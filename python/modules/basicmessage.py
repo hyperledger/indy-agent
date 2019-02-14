@@ -1,5 +1,6 @@
 import aiohttp
 import aiohttp_jinja2
+import datetime
 import jinja2
 import base64
 import json
@@ -46,7 +47,7 @@ class AdminBasicMessage(Module):
         my_did_str = pairwise_conn_info_json['my_did']
 
         message_to_send = msg['message']
-        time_sent = time.time()
+        sent_time = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat(' ')
 
         # store message in the wallet
         await non_secrets.add_wallet_record(
@@ -55,7 +56,7 @@ class AdminBasicMessage(Module):
             uuid.uuid4().hex,
             json.dumps({
                 'from': my_did_str,
-                'timestamp': time_sent,
+                'sent_time': sent_time,
                 'content': message_to_send
             }),
             json.dumps({
@@ -65,7 +66,8 @@ class AdminBasicMessage(Module):
 
         message = Message({
             '@type': BasicMessage.MESSAGE,
-            'timestamp': time_sent,
+            '~l10n': {'locale': 'en'},
+            'sent_time': sent_time,
             'content': message_to_send
         })
 
@@ -78,7 +80,7 @@ class AdminBasicMessage(Module):
                 'with': their_did_str,
                 'message': {
                     'from': my_did_str,
-                    'timestamp': time_sent,
+                    'sent_time': sent_time,
                     'content': message_to_send
                 }
             })
@@ -100,7 +102,7 @@ class AdminBasicMessage(Module):
             messages.append(d)
         #TODO: fetch in loop till all records are processed
         await non_secrets.close_wallet_search(search_handle)
-        messages = sorted(messages, key=lambda n: n['timestamp'], reverse=True)
+        messages = sorted(messages, key=lambda n: n['sent_time'], reverse=True)
 
         await self.agent.send_admin_message(
             Message({
@@ -135,7 +137,7 @@ class BasicMessage(Module):
             uuid.uuid4().hex,
             json.dumps({
                 'from': msg.context['from_did'],
-                'timestamp': msg['timestamp'],
+                'sent_time': msg['sent_time'],
                 'content': msg['content']
             }),
             json.dumps({
@@ -150,7 +152,7 @@ class BasicMessage(Module):
                 'with': msg.context['from_did'],
                 'message': {
                     'from': msg.context['from_did'],
-                    'timestamp': msg['timestamp'],
+                    'sent_time': msg['sent_time'],
                     'content': msg['content']
                 }
             })

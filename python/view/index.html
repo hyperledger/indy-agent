@@ -216,7 +216,7 @@
 
         <!-- relationships page -->
         <div id="connection" class="tab" v-if="tab_active">
-            <h3>Connection: {{connection.label}}</h3>
+            <h3>Connection: {{connection.metadata.label}}</h3>
             <p>My DID: {{connection.my_did}}</p>
             <p>Their DID: {{connection.their_did}}</p>
 
@@ -227,7 +227,10 @@
                 </div>
                 <div id="message_history" v-for="m in basicmessage_list">
 
-                    <div v-bind:class="{sent_message: m.from == connection.my_did, received_message: m.from == connection.their_did}">{{m.content}}</div>
+                    <div v-bind:class="{sent_message: m.from == connection.my_did, received_message: m.from == connection.their_did}">
+                        <p>{{m.content}}</p>
+                        <p class="ts">{{m.sent_time | moment("dddd, MMMM Do h:mm a")}}</p>
+                    </div>
 
                 </div>
             </div>
@@ -257,9 +260,13 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.min.js"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/locale/es-us.js"></script>
+    <script src="/res/vue-moment.min.js"></script>
+
     <script src="/res/indy-agent.js"></script>
     <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
     <script src="/res/utils.js"></script>
+
 
   </body>
 </html>

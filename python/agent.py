@@ -3,7 +3,10 @@
 import json
 import base64
 import asyncio
+import struct
 import traceback
+import time
+
 import aiohttp
 from indy import wallet, did, error, crypto, pairwise, non_secrets
 
@@ -121,6 +124,27 @@ class Agent:
 
             raise WalletConnectionException
 
+    async def sign_agent_message_field(self, fieldvalue, signing_key):
+        timestamp_bytes = struct.pack(">Q", int(time.time()))
+        data_bytes = timestamp_bytes + json.dumps(fieldvalue).encode()
+        result = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/signature/1.0/ed25519Sha512_single",
+            "sig_data": base64.urlsafe_b64encode(data_bytes).decode("utf-8"),
+            "signer": signing_key,
+        }
+        sig_bytes = await crypto.crypto_sign(self.wallet_handle, signing_key, result["sig_data"])
+        result["signature"] = base64.urlsafe_b64encode(sig_bytes).decode('utf-8')
+        return result
+
+    async def unpack_and_verify_signed_agent_message_field(self, signed_field):
+        signature_bytes = base64.urlsafe_b64decode(signed_field['signature'].encode('utf-8'))
+        sig_verified = await crypto.crypto_verify(signed_field['signer'], signed_field['sig_data'], signature_bytes)
+        data_bytes = base64.urlsafe_b64decode(signed_field['sig_data'])
+        timestamp = struct.unpack(">Q", data_bytes[:8])
+        fieldjson = data_bytes[8:]
+        result = json.loads(fieldjson)
+        return result, sig_verified
+
 
     async def unpack_agent_message(self, wire_msg_bytes):
 
@@ -179,7 +203,10 @@ class Agent:
         )
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(their_endpoint, data=wire_message) as resp:
+            headers = {
+                'content-type': 'application/ssi-agent-wire'
+            }
+            async with session.post(their_endpoint, data=wire_message, headers=headers) as resp:
                 if resp.status != 202:
                     print(resp.status)
                     print(await resp.text())

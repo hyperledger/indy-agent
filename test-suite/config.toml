@@ -3,7 +3,7 @@
 # Host specifies the address the agent will listen on for messages.
 host = "localhost"
 
-# port is the port on which the test agent will listen.
+# port on which the test agent will listen.
 port = 3000
 
 # Testing agent endpoint
@@ -11,6 +11,10 @@ endpoint = 'http://localhost:3000/indy'
 
 # url of the tested agent
 tested_agent = 'http://localhost:3001/indy'
+
+# Transport protocol
+# Possible values: http
+transport = "http"
 
 # The default name used for wallets created by the test agent.
 wallet_name = 'testing-agent'
@@ -21,8 +25,23 @@ wallet_path = ".testing-wallets"
 # Specify whether wallets should be deleted after testing.
 clear_wallets = true
 
-# A list of tests to be run but the test agent.
+# Set the default log level
+# Logs from both the tests and indy-sdk will be visible
+
+# Level    | Numeric value
+#----------|----------------
+# CRITICAL |  50
+# ERROR    |  40
+# WARNING  |  30
+# INFO     |  20
+# DEBUG    |  10
+# NOTSET   |  0
+log_level = 30
+
+# A list of tests to be run by the test agent.
 # Each string in this list is the name of the module containing the test.
 tests = [
-    "connection"
+    "connection.manual",
+    "basic_message.manual"
 ]
+

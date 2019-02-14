@@ -97,8 +97,9 @@ class AdminConnection(Module):
         invite_msg = Message({
             '@type': Connection.INVITE,
             'label': self.agent.owner,
-            'key': connection_key,
-            'endpoint': self.agent.endpoint,
+            'recipientKeys': [connection_key],
+            'serviceEndpoint': self.agent.endpoint,
+            # routingKeys not specified, but here is where they would be put in the invite.
         })
 
         b64_invite = \
@@ -161,14 +162,14 @@ class AdminConnection(Module):
         await self.agent.send_admin_message(Message({
             '@type': AdminConnection.INVITE_RECEIVED,
             'label': invite_msg['label'],
-            'key': invite_msg['key'],
-            'endpoint': invite_msg['endpoint']
+            'key': invite_msg['recipientKeys'][0],
+            'endpoint': invite_msg['serviceEndpoint']
         }))
 
         await non_secrets.add_wallet_record(
             self.agent.wallet_handle,
             'invitation',
-            invite_msg['key'],
+            invite_msg['recipientKeys'][0],
             Serializer.pack(invite_msg),
             '{}'
         )
@@ -207,8 +208,8 @@ class AdminConnection(Module):
 
         my_label = self.agent.owner
         label = invite['label']
-        their_connection_key = invite['key']
-        their_endpoint = invite['endpoint']
+        their_connection_key = invite['recipientKeys'][0]
+        their_endpoint = invite['serviceEndpoint']
 
         # Create my information for connection
         (my_did, my_vk) = await utils.create_and_store_my_did(self.agent.wallet_handle)
@@ -226,10 +227,25 @@ class AdminConnection(Module):
         request = Message({
             '@type': Connection.REQUEST,
             'label': my_label,
-            'DID': my_did,
-            'DIDDoc': {
-                'key': my_vk,
-                'endpoint': self.agent.endpoint,
+            'connection': {
+                'DID': my_did,
+                'DIDDoc': {
+                    "@context": "https://w3id.org/did/v1",
+                    "id": my_did,
+                    "publicKey": [{
+                        "id": my_did + "#keys-1",
+                        "type": "Ed25519VerificationKey2018",
+                        "controller": my_did,
+                        "publicKeyBase58": my_vk
+                    }],
+                    "service": [{
+                        "id": my_did + ";indy",
+                        "type": "IndyAgent",
+                        "recipientKeys": [my_vk],
+                        #"routingKeys": ["<example-agency-verkey>"],
+                        "serviceEndpoint": self.agent.endpoint,
+                    }],
+                }
             }
         })
 
@@ -275,16 +291,35 @@ class AdminConnection(Module):
         label = pairwise_meta['label']
         my_vk = await did.key_for_local_did(self.agent.wallet_handle, my_did)
 
-        msg = Message({
+        response_msg = Message({
             '@type': Connection.RESPONSE,
-            'DID': my_did,
-            'DIDDoc': {
-                'key': my_vk,
-                'endpoint': self.agent.endpoint
+            'connection': {
+                'DID': my_did,
+                'DIDDoc': {
+                    "@context": "https://w3id.org/did/v1",
+                    "id": my_did,
+                    "publicKey": [{
+                        "id": my_did + "#keys-1",
+                        "type": "Ed25519VerificationKey2018",
+                        "controller": my_did,
+                        "publicKeyBase58": my_vk
+                    }],
+                    "service": [{
+                        "id": my_did + ";indy",
+                        "type": "IndyAgent",
+                        "recipientKeys": [my_vk],
+                        #"routingKeys": ["<example-agency-verkey>"],
+                        "serviceEndpoint": self.agent.endpoint,
+                    }],
+                }
             }
         })
 
-        await self.agent.send_message_to_agent(their_did, msg)
+        # Apply signature to connection field, sign it with the key used in the invitation and request
+        response_msg['connection~sig'] = await self.agent.sign_agent_message_field(response_msg['connection'], pairwise_meta["connection_key"])
+        del response_msg['connection']
+
+        await self.agent.send_message_to_agent(their_did, response_msg)
 
         await self.agent.send_admin_message(
             Message({
@@ -300,7 +335,7 @@ class Connection(Module):
     VERSION = "1.0"
     FAMILY = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/" + FAMILY_NAME + "/" + VERSION + "/"
 
-    INVITE = FAMILY + "invite"
+    INVITE = FAMILY + "invitation"
     REQUEST = FAMILY + "request"
     RESPONSE = FAMILY + "response"
 
@@ -322,19 +357,34 @@ class Connection(Module):
                 {
                   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request",
                   "label": "Bob",
-                  "DID": "B.did@B:A",
-                  "DIDDoc": {
-                    "key": "1234",
-                    "endpoint": "asdf"
+                  "connection":{
+                      "DID": "B.did@B:A",
+                      "DIDDoc": {
+                          "@context": "https://w3id.org/did/v1",
+                          "publicKey": [{
+                            "id": "did:example:123456789abcdefghi#keys-1",
+                            "type": "Ed25519VerificationKey2018",
+                            "controller": "did:example:123456789abcdefghi",
+                            "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"
+                          }],
+                          "service": [{
+                            "type": "IndyAgent",
+                            "recipientKeys" : [ "<verkey>" ], //pick one
+                            "routingKeys": ["<example-agency-verkey>"],
+                            "serviceEndpoint": "https://example.agency.com",
+                          }]
+                      }
                   }
                 }
         """
         connection_key = msg.context['to_key']
 
         label = msg['label']
-        their_did = msg['DID']
-        their_vk = msg['DIDDoc']['key']
-        their_endpoint = msg['DIDDoc']['endpoint']
+        their_did = msg['connection']['DID']
+        # NOTE: these values are pulled based on the minimal connectathon format. Full processing
+        #  will require full DIDDoc storage and evaluation.
+        their_vk = msg['connection']['DIDDoc']['publicKey'][0]['publicKeyBase58']
+        their_endpoint = msg['connection']['DIDDoc']['service'][0]['serviceEndpoint']
 
         # Store their information from request
         await utils.store_their_did(self.agent.wallet_handle, their_did, their_vk)
@@ -344,7 +394,8 @@ class Connection(Module):
             their_did,
             json.dumps({
                 'label': label,
-                'endpoint': their_endpoint
+                'endpoint': their_endpoint,
+
             })
         )
 
@@ -360,7 +411,8 @@ class Connection(Module):
                 'label': label,
                 'their_endpoint': their_endpoint,
                 'their_vk': their_vk,
-                'my_vk': my_vk
+                'my_vk': my_vk,
+                'connection_key': connection_key  # used to sign the response
             })
         )
 
@@ -389,15 +441,24 @@ class Connection(Module):
         """
         my_did = msg.context['to_did']
         my_vk = await did.key_for_local_did(self.agent.wallet_handle, my_did)
-        their_did = msg['DID']
-        their_vk = msg.context['from_key'] # equivalent to msg['DIDDoc']['key']?
+
+        #process signed field
+        msg['connection'], sig_verified = await self.agent.unpack_and_verify_signed_agent_message_field(msg['connection~sig'])
+        # connection~sig remains for metadata
+
+
+        their_did = msg['connection']['DID']
+        their_vk = msg['connection']['DIDDoc']['publicKey'][0]['publicKeyBase58']
+        their_endpoint = msg['connection']['DIDDoc']['service'][0]['serviceEndpoint']
+
+        msg_vk = msg.context['from_key']
+        # TODO: verify their_vk (from did doc) matches msg_vk
 
         # Retrieve connection information from DID metadata
         my_did_meta = json.loads(
             await did.get_did_metadata(self.agent.wallet_handle, my_did)
         )
         label = my_did_meta['label']
-        their_endpoint = my_did_meta['their_endpoint']
 
         # Clear DID metadata. This info will be stored in pairwise meta.
         await did.set_did_metadata(self.agent.wallet_handle, my_did, '')

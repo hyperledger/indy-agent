@@ -121,6 +121,8 @@
         history_view: []
     };
 
+    Vue.use(vueMoment);
+
     var ui_credentials = new Vue({
         el: '#credentials',
         data: ui_data,
@@ -257,20 +259,6 @@
                 console.log(this.history_view);
                 $('#historyModal').modal({});
             },
-            // trustping_sent: function (msg) {
-            //     //var c = this.get_connection_by_name(msg.content.name);
-            //     //c.status = "Message sent";
-            //     // msg.with has their_did to help match.
-            //     if(msg.with == this.connection.their_did){
-            //         //connection view currently open
-            //         sendMessage({
-            //             '@type': ADMIN_TRUSTPING.GET_TRUSTPINGS,
-            //             with: msg.with
-            //         });
-            //     } else {
-            //         //connection not currently open. set unread flag on connection details?
-            //     }
-            // },
             trustping_received: function (msg) {
                 if(msg.with == this.connection.their_did){
                     //connection view currently open
@@ -282,9 +270,6 @@
                     //connection not currently open. set unread flag on connection details?
                 }
             },
-            // trustpings: function(msg){
-            //     this.trustpings_list = msg.messages;
-            // },
             get_connection_by_name: function(label){
                return this.connections.find(function(x){return x.label === msg.label;});
             },
@@ -332,19 +317,7 @@
                 console.log((new Date()).getTime());
                 this.connection.last_trustping_datetime = (new Date()).getTime();
                 sendMessage(msg);
-            },
-            load: function() {
-                // sendMessage({
-                //    '@type'
-                // });
-                console.log("load function hit")
             }
-            // load: function(){
-            //     sendMessage(msg = {
-            //         '@type': ADMIN_TRUSTPING.GET_TRUSTPINGS,
-            //         with: this.connection.their_did
-            //     });
-            // }
         }
     });
 
@@ -443,9 +416,9 @@
     msg_router.register(ADMIN_CONNECTION.REQUEST_RECEIVED, ui_relationships.request_received);
     msg_router.register(ADMIN_BASICMESSAGE.MESSAGE_RECEIVED, ui_relationships.message_received);
     msg_router.register(ADMIN_BASICMESSAGE.MESSAGES, ui_relationships.messages);
-    msg_router.register(ADMIN_TRUSTPING.TRUSTPING_SENT, ui_relationships.trustping_sent);
+    msg_router.register(ADMIN_TRUSTPING.TRUSTPING_SENT, ui_relationships.messages);
     msg_router.register(ADMIN_TRUSTPING.TRUSTPING_RECEIVED, ui_relationships.trustping_received);
-    msg_router.register(ADMIN_TRUSTPING.TRUSTPINGS, ui_relationships.trustpings);
+    msg_router.register(ADMIN_TRUSTPING.TRUSTPING_RESPONSE, ui_relationships.messages);
     // }}}
 
     // Create WebSocket connection.
@@ -478,17 +451,3 @@
         socket.send(JSON.stringify(msg));
     }
 
-    function sendTrustPing(msg, thread_cb){
-        console.log("sendTrustPing hit in JS")
-        //decorate message as necessary
-        msg.id = (new Date()).getTime(); // ms since epoch
-        console.log(msg);
-        // register thread callback
-        if(typeof thread_cb !== "undefined") {
-            thread_router.register(msg.id, thread_cb);
-        }
-
-        // TODO: Encode properly when wire protocol is finished
-        console.log("sending trustping", msg);
-        socket.send(JSON.stringify(msg));
-    }

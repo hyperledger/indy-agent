@@ -26,11 +26,15 @@ class Message(UserDict):
     def type(self):
         return self.data["@type"]
 
-    def as_json(self):
-        class MessageEncoder(json.JSONEncoder):
-            def default(self, obj):
-                if isinstance(obj, Message):
-                    return obj.to_dict()
-                return json.JSONEncoder.default(self, obj)
+    class MessageEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, Message):
+                return obj.to_dict()
+            return json.JSONEncoder.default(self, obj)
 
-        return json.dumps(self, cls=MessageEncoder)
+    def as_json(self):
+        return json.dumps(self, cls=Message.MessageEncoder)
+
+    def pretty_print(self):
+        return json.dumps(self, sort_keys=False, indent=2, cls=Message.MessageEncoder)
+

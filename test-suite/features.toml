@@ -1,0 +1,21 @@
+[[feature]]
+name="connection.manual"
+paths=["tests/connection/manual.py"]
+description="""
+
+This feature tests the connection protocol using a user input driven method.
+
+See this document for more details:
+https://github.com/hyperledger/indy-hipe/blob/a580d00be443990dfcbcf12be5ac85808340de1f/text/connection-protocol/README.md
+
+"""
+
+[[feature]]
+name="basic_message.manual"
+paths=["tests/basic_message/manual.py"]
+description="""
+
+This feature tests the BasicMessage protocol defined in the HIPE linked below:
+https://github.com/hyperledger/indy-hipe/blob/7df770e4cb3163c1e97b224387fed320bf7d9013/text/basic-message/README.md
+
+"""

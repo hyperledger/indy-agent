@@ -107,15 +107,24 @@ code {
 }
 
 #message_history .sent_message, #message_history .received_message {
-    border: 1px solid lightgrey;
-    padding: .2em;
-    margin-bottom: .2em;
+    padding: .6em;
+    margin-top: .2em;
+    border-radius: 6px;
 }
-
+#message_history p {
+    margin-bottom: 0px;
+}
+#message_history .ts {
+    font-size: .7em;
+    font-style: italic;
+    margin-bottom: 0px;
+}
 #message_history .sent_message {
     margin-right: 3em;
+    background-color: whitesmoke;
 }
 #message_history .received_message {
     margin-left: 3em;
     text-align: right;
+    background-color: aliceblue;
 }
