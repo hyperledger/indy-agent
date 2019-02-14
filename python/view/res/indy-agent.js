@@ -3,7 +3,8 @@
         ADMIN_CONNECTIONS_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin_connections/1.0/",
         ADMIN_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin/1.0/",
         ADMIN_WALLETCONNECTION_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin_walletconnection/1.0/",
-        ADMIN_BASICMESSAGE_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin_basicmessage/1.0/"
+        ADMIN_BASICMESSAGE_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin_basicmessage/1.0/",
+        ADMIN_TRUSTPING_BASE: "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin_trustping/1.0/"
     };
 
     const ADMIN = {
@@ -43,12 +44,23 @@
         MESSAGES: MESSAGE_TYPES.ADMIN_BASICMESSAGE_BASE + "messages"
     };
 
+    const ADMIN_TRUSTPING = {
+        SEND_TRUSTPING: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "send_trustping",
+        TRUSTPING_SENT: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_sent",
+        TRUSTPING_RECEIVED: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_received",
+        TRUSTPING_RESPONSE: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustping_response"
+
+        // GET_TRUSTPINGS: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "get_trustpings",
+        // TRUSTPINGS: MESSAGE_TYPES.ADMIN_TRUSTPING_BASE + "trustpings"
+    };
+
     // Message Router {{{
     var msg_router = {
         routes: [],
         route:
             function(msg) {
                 if (msg['@type'] in this.routes) {
+                    console.log(msg['@type']);
                     this.routes[msg['@type']](msg);
                 } else {
                     console.log('Message from server without registered route: ' + JSON.stringify(msg));
@@ -103,6 +115,9 @@
         connection: {},
         new_basicmessage: "",
         basicmessage_list: [],
+        new_trustping:"",
+        last_trustping_sent:"",
+        trustping_list:[],
         history_view: []
     };
 
@@ -208,7 +223,7 @@
                 // remove from pending connections list
                 this.connections.splice(this.connections.indexOf(c), 1);
 
-                // now request a state update to see the new pairwise connection
+                // no-w request a state update to see the new pairwise connection
                 sendMessage({'@type': ADMIN.STATE_REQUEST});
             },
             message_sent: function (msg) {
@@ -243,6 +258,17 @@
                 this.history_view = connection.history;
                 console.log(this.history_view);
                 $('#historyModal').modal({});
+            },
+            trustping_received: function (msg) {
+                if(msg.with == this.connection.their_did){
+                    //connection view currently open
+                    sendMessage({
+                        '@type': ADMIN_TRUSTPING.TRUSTPING_RECEIVED,
+                        with: msg.with
+                    });
+                } else {
+                    //connection not currently open. set unread flag on connection details?
+                }
             },
             get_connection_by_name: function(label){
                return this.connections.find(function(x){return x.label === msg.label;});
@@ -279,6 +305,18 @@
                     '@type': ADMIN_BASICMESSAGE.GET_MESSAGES,
                     with: this.connection.their_did
                 });
+            },
+            send_trustping: function(){
+                msg = {
+                    '@type': ADMIN_TRUSTPING.SEND_TRUSTPING,
+                    to: this.connection.their_did,
+                    from: this.connection.did,
+                    message: "Send trustping"
+                };
+                console.log("send trustping");
+                console.log((new Date()).getTime());
+                this.connection.last_trustping_datetime = (new Date()).getTime();
+                sendMessage(msg);
             }
         }
     });
@@ -378,7 +416,9 @@
     msg_router.register(ADMIN_CONNECTION.REQUEST_RECEIVED, ui_relationships.request_received);
     msg_router.register(ADMIN_BASICMESSAGE.MESSAGE_RECEIVED, ui_relationships.message_received);
     msg_router.register(ADMIN_BASICMESSAGE.MESSAGES, ui_relationships.messages);
-
+    msg_router.register(ADMIN_TRUSTPING.TRUSTPING_SENT, ui_relationships.messages);
+    msg_router.register(ADMIN_TRUSTPING.TRUSTPING_RECEIVED, ui_relationships.trustping_received);
+    msg_router.register(ADMIN_TRUSTPING.TRUSTPING_RESPONSE, ui_relationships.messages);
     // }}}
 
     // Create WebSocket connection.
@@ -410,3 +450,4 @@
         console.log("sending message", msg);
         socket.send(JSON.stringify(msg));
     }
+

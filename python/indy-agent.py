@@ -18,6 +18,7 @@ from modules.connection import Connection, AdminConnection
 from modules.admin import Admin, root
 from modules.admin_walletconnection import AdminWalletConnection
 from modules.basicmessage import AdminBasicMessage, BasicMessage
+from modules.trustping import AdminTrustPing, TrustPing
 from post_message_handler import PostMessageHandler
 from websocket_message_handler import WebSocketMessageHandler
 from agent import Agent
@@ -71,6 +72,8 @@ if __name__ == "__main__":
     AGENT.register_module(AdminWalletConnection)
     AGENT.register_module(BasicMessage)
     AGENT.register_module(AdminBasicMessage)
+    AGENT.register_module(AdminTrustPing)
+    AGENT.register_module(TrustPing)
 
     if args.wallet:
         try:
