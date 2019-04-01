@@ -67,7 +67,7 @@ class Admin(Module):
 async def root(request):
     print(request)
     agent = request.app['agent']
-    local_ip = socket.gethostbyname(socket.gethostname())
+    local_ip = socket.gethostbyname("")
     agent.offer_endpoint = request.url.scheme + '://' + local_ip
     agent.endpoint = request.url.scheme + '://' + local_ip
     if request.url.port is not None:
