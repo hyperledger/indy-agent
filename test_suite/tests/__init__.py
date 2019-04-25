@@ -32,6 +32,27 @@ async def expect_message(transport: BaseTransport, timeout: int):
 
     fail("No message received before timing out; tested agent failed to respond")
 
+
+async def expect_silence(transport: BaseTransport, timeout: int):
+    """
+    Ensure that no message is received.
+    """
+    get_message_task = asyncio.ensure_future(transport.recv())
+    sleep_task = asyncio.ensure_future(asyncio.sleep(timeout))
+    finished, unfinished = await asyncio.wait(
+        [
+            get_message_task,
+            sleep_task
+        ],
+        return_when=asyncio.FIRST_COMPLETED
+    )
+    if get_message_task in finished:
+        fail("Received a message when not expecting any")
+    else:
+        for task in unfinished:
+            task.cancel()
+
+
 def validate_message(expected_attrs: [Any], msg: Message):
     __tracebackhide__ = True
     for attribute in expected_attrs:
@@ -106,3 +127,12 @@ async def sign_field(wallet_handle, my_vk, field_value):
         "sig_data": sig_data,
         "signature": signature
     }
+
+
+def check_problem_report(msg: Message, expected_problem_code):
+    """
+    Check that the given message is an error message by checking that its a "problem-report".
+    Also check the expected problem code. Can be enhanced with a regex for checking the problem reason.
+    """
+    assert msg.type.endswith('problem_report')
+    assert msg.data['problem-code'] == expected_problem_code

@@ -18,6 +18,8 @@ from router.simple_router import SimpleRouter
 from . import Module
 from message import Message
 from helpers import serialize_bytes_json, bytes_to_str, str_to_bytes
+from test_suite.tests.connection import Connection as ConnectionValidator
+
 
 class BadInviteException(Exception):
     def __init__(self, msg):
@@ -361,7 +363,7 @@ class Connection(Module):
     INVITE = FAMILY + "invitation"
     REQUEST = FAMILY + "request"
     RESPONSE = FAMILY + "response"
-
+    REQUEST_NOT_ACCEPTED = "request_not_accepted"
 
     def __init__(self, agent):
         self.agent = agent
@@ -400,6 +402,20 @@ class Connection(Module):
                   }
                 }
         """
+        try:
+            ConnectionValidator.Request.validate(msg)
+        except Exception as e:
+            vk, endpoint = ConnectionValidator.Request.extract_verkey_endpoint(msg)
+            if None in (vk, endpoint):
+                # Cannot extract verkey and endpoint hence won't send any message back.
+                print('Encountered error parsing connection request ', e)
+            else:
+                # Sending an error message back to the sender
+                err_msg = self.build_problem_report_for_connections(Connection.FAMILY, Connection.REQUEST_NOT_ACCEPTED,
+                                                                    str(e))
+                await self.agent.send_message_to_endpoint_and_key(vk, endpoint, err_msg)
+            return
+
         connection_key = msg.context['to_key']
 
         label = msg['label']

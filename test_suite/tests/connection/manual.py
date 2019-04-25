@@ -1,9 +1,10 @@
 import asyncio
 import pytest
 from message import Message
-from tests import expect_message, validate_message, pack, unpack, sign_field, unpack_and_verify_signed_field
+from tests import expect_message, validate_message, pack, unpack, sign_field, unpack_and_verify_signed_field, check_problem_report, expect_silence
 from indy import did
 from . import Connection
+
 
 @pytest.mark.asyncio
 async def test_connection_started_by_tested_agent(config, wallet_handle, transport):
@@ -54,6 +55,7 @@ async def test_connection_started_by_tested_agent(config, wallet_handle, transpo
     Connection.Response.validate(response, request.id)
     print("\nReceived Response (post signature verification):\n", response.pretty_print())
 
+
 async def get_connection_started_by_suite(config, wallet_handle, transport, label=None):
     if label is None:
         label = 'test-suite'
@@ -65,7 +67,7 @@ async def get_connection_started_by_suite(config, wallet_handle, transport, labe
     print("\n\nInvitation encoded as URL: ", invite_str)
 
     print("Awaiting request from tested agent...")
-    request_bytes = await expect_message(transport, 90) # A little extra time to copy-pasta
+    request_bytes = await expect_message(transport, 90)  # A little extra time to copy-pasta
 
     request = await unpack(
         wallet_handle,
@@ -105,6 +107,60 @@ async def get_connection_started_by_suite(config, wallet_handle, transport, labe
         'their_endpoint': their_endpoint
     }
 
+
 @pytest.mark.asyncio
 async def test_connection_started_by_suite(config, wallet_handle, transport):
     await get_connection_started_by_suite(config, wallet_handle, transport, 'test-connection-started-by-suite')
+
+
+@pytest.mark.asyncio
+async def test_bad_connection_request_by_testing_agent(config, wallet_handle, transport):
+    invite_url = input('Input generated connection invite: ')
+
+    invite_msg = Connection.Invite.parse(invite_url)
+
+    print("\nReceived Invite:\n", invite_msg.pretty_print())
+
+    # Create my information for connection
+
+    (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, '{}')
+
+    # Send a bad Connection Request to inviter by removing the DID Doc from request. Expect no response
+    request = Connection.Request.build(
+        'test-connection-started-by-tested-agent',
+        my_did,
+        my_vk,
+        config.endpoint
+    )
+    did_doc = request['connection'].pop('did_doc')
+    await transport.send(
+        invite_msg['serviceEndpoint'],
+        await pack(
+            wallet_handle,
+            my_vk,
+            invite_msg['recipientKeys'][0],
+            request
+        )
+    )
+    await expect_silence(transport, 30)
+    # TODO: Need some way to ensure tested agent has gracefully handled the error and not crashed.
+
+    # Send a bad Connection Request to inviter by removing only the DID from request. Expect error in response
+    request['connection']['did_doc'] = did_doc
+    request['connection'].pop('did_doc')
+    await transport.send(
+        invite_msg['serviceEndpoint'],
+        await pack(
+            wallet_handle,
+            my_vk,
+            invite_msg['recipientKeys'][0],
+            request
+        )
+    )
+    response_bytes = await expect_message(transport, 30)
+    response = await unpack(
+        wallet_handle,
+        response_bytes,
+        expected_to_vk=my_vk
+    )
+    check_problem_report(response, expected_problem_code='request_not_accepted')
