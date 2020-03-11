@@ -57,7 +57,7 @@ would like to list your agent here, please submit a pull request.
 |python ref agent|community / Sovrin Foundation (see github contributors)|cloud (web-based)|not yet published on the web, but 100% passed in Feb 2019|see [python/README.md](python/README.md) in this repo|
 |node.js ref agent|community / BYU (see github contributors)|cloud (web-based)|not yet tested|see [nodejs/README.md](nodejs/README.md) in this repo|
 |Sovrin Connector|Sovrin Foundation|mobile app (assumes cloud support)|not yet tested|[github.com/ sovrin-foundation/ connector-app](https://github.com/sovrin-foundation/connector-app)|
-|IndyCat|Government of British Columbia|Cloud for institutions (besides agent, includes drive to enable injection of business rules in messaging protocols)|100% passed in Feb 2019|[https://github.com/bcgov/indy-catalyst/](https://github.com/bcgov/indy-catalyst/tree/master/agent)|
+|IndyCat|Government of British Columbia|Cloud for institutions (besides agent, includes drive to enable injection of business rules in messaging protocols)|100% passed in Feb 2019|[https://github.com/hyperledger/aries-vcr/](https://github.com/hyperledger/aries-vcr/tree/master/agent)|
 |AgentFramework|AgentFramework|.NET framework for building agents of all types|Samples in the repository 100% passed in Feb 2019|[agent-framework](https://github.com/streetcred-id/agent-framework)|
 |Streetcred|Streetcred|Commercial mobile and web app built using AgentFramework|Samples in AgentFramework 100% passed in Feb 2019|[streetcred.id](https://streetcred.id)|
 |Mattr|Mattr|Commercial mobile and web app built using AgentFramework|Samples in AgentFramework 100% passed in Feb 2019|[mattr.global](https://mattr.global)|
