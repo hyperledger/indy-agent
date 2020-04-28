@@ -1,6 +1,12 @@
 Indy Agents
 ===========
 
+Archiving Notice
+----------------
+
+**This repo has been archived (marked read only). There was GPL code removed; as such,
+the contents of the repo are not usable as Apache 2.0 source even if copied out.**
+
 Migration Notice
 ----------------
 
